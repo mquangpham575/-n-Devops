@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import api from '../services/api';
+import { authAPI } from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -35,7 +35,7 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (username, password) => {
         try {
-            const response = await api.post('/auth/login', { username, password });
+            const response = await authAPI.login({ username, password });
             // Backend trả về { token, userId, username, email, role }
             // Chuẩn hóa userId → id để dùng nhất quán trong toàn app
             const { token, userId, ...rest } = response.data;
@@ -56,11 +56,7 @@ export const AuthProvider = ({ children }) => {
 
     const register = async (username, email, password) => {
         try {
-            const response = await api.post('/auth/register', {
-                username,
-                email,
-                password,
-            });
+            const response = await authAPI.register({ username, email, password });
 
             return {
                 success: true,

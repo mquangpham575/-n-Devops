@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import api from '../services/api';
+import { blogAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { Calendar, User, ArrowLeft, Edit, Trash2, FileText, Download, ExternalLink, File } from 'lucide-react';
 import CommentSection from '../components/CommentSection';
@@ -196,7 +196,7 @@ const BlogDetailPage = () => {
 
     const fetchBlog = async () => {
         try {
-            const response = await api.get(`/blogs/${id}`);
+            const response = await blogAPI.getById(id);
             setBlog(response.data);
         } catch (error) {
             console.error('Failed to fetch blog:', error);
@@ -208,7 +208,7 @@ const BlogDetailPage = () => {
     const handleDelete = async () => {
         setDeleting(true);
         try {
-            await api.delete(`/blogs/${id}`);
+            await blogAPI.delete(id);
             navigate('/');
         } catch (error) {
             showToast(error.response?.data?.error || 'Không thể xóa bài viết', 'error');

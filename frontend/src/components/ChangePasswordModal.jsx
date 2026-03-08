@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Lock, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
-import api from '../services/api';
+import { userAPI } from '../services/api';
 
 const ChangePasswordModal = ({ isOpen, onClose }) => {
     const [formData, setFormData] = useState({
@@ -50,7 +50,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
 
         setLoading(true);
         try {
-            await api.post('/users/change-password', {
+            await userAPI.changePassword({
                 currentPassword: formData.currentPassword,
                 newPassword: formData.newPassword
             });

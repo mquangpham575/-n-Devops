@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import api, { categoryAPI } from '../services/api';
+import { blogAPI, categoryAPI } from '../services/api';
 import { Calendar, User, ArrowRight, BookOpen, FileText, File, Download, ExternalLink, ChevronDown, Filter, Search, X } from 'lucide-react';
 import FeaturedBanner from '../components/FeaturedBanner';
 
@@ -32,7 +32,7 @@ const BlogListPage = () => {
     const fetchBlogs = async () => {
         try {
             setLoading(true);
-            const response = await api.get('/blogs');
+            const response = await blogAPI.getAll();
             setBlogs(response.data);
         } catch (error) {
             console.error('Failed to fetch blogs:', error);

@@ -1,7 +1,5 @@
 # Git ignore
 .env
-.env.local
-.env.*.local
 
 # IDE
 .idea
@@ -14,12 +12,6 @@ Thumbs.db
 
 # Logs
 *.log
-
-# Docker
-docker-compose.override.yml
-
-# Uploads
-uploads/
 
 # Maven
 target/

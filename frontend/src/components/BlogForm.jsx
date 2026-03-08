@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import api, { categoryAPI } from '../services/api';
+import { blogAPI, categoryAPI } from '../services/api';
 import { Save, X, AlertCircle, Image as ImageIcon, FileText, Eye } from 'lucide-react';
 
 const BlogForm = () => {
@@ -43,7 +43,7 @@ const BlogForm = () => {
 
     const fetchBlog = async () => {
         try {
-            const response = await api.get(`/blogs/${id}`);
+            const response = await blogAPI.getById(id);
             setFormData({
                 categoryId: response.data.categoryId || '',
                 name: response.data.name || '',
@@ -87,11 +87,7 @@ const BlogForm = () => {
 
         try {
             setLoading(true);
-            const response = await api.post('/blogs/upload', uploadData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
+            const response = await blogAPI.uploadFile(uploadData);
             setFormData(prev => ({
                 ...prev,
                 imageUrl: response.data.url,
@@ -120,9 +116,9 @@ const BlogForm = () => {
 
         try {
             if (isEditMode) {
-                await api.put(`/blogs/${id}`, formData);
+                await blogAPI.update(id, formData);
             } else {
-                await api.post('/blogs', formData);
+                await blogAPI.create(formData);
             }
             navigate('/admin');
         } catch (error) {

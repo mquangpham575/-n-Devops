@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import api from '../services/api';
+import { authAPI } from '../services/api';
 import { CheckCircle, XCircle, Loader } from 'lucide-react';
 
 const EmailVerificationPage = () => {
@@ -19,7 +19,7 @@ const EmailVerificationPage = () => {
             }
 
             try {
-                const response = await api.get(`/auth/verify-email?token=${token}`);
+                const response = await authAPI.verifyEmail(token);
                 setStatus('success');
                 setMessage(response.data.message);
             } catch (error) {

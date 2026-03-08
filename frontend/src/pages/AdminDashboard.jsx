@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import api, { categoryAPI } from '../services/api';
+import { blogAPI, categoryAPI } from '../services/api';
 import { Plus, Edit, Trash2, Calendar, Eye, Users, Pin, PinOff, FolderOpen, Search, X } from 'lucide-react';
 import DeleteConfirmModal from '../components/DeleteConfirmModal';
 import { useAuth } from '../context/AuthContext';
@@ -25,7 +25,7 @@ const AdminDashboard = () => {
     const fetchBlogs = async () => {
         try {
             setLoading(true);
-            const response = await api.get('/blogs?includeInactive=true');
+            const response = await blogAPI.getAll({ includeInactive: true });
             // Sort: pinned blogs first
             const sortedBlogs = response.data.sort((a, b) => {
                 if (a.pinned && !b.pinned) return -1;
@@ -63,7 +63,7 @@ const AdminDashboard = () => {
 
         setDeleting(true);
         try {
-            await api.delete(`/blogs/${blogToDelete}`);
+            await blogAPI.delete(blogToDelete);
             setBlogs(blogs.filter((blog) => blog.id !== blogToDelete));
             setShowDeleteModal(false);
             setBlogToDelete(null);
@@ -82,9 +82,9 @@ const AdminDashboard = () => {
     const handleTogglePin = async (blog) => {
         try {
             if (blog.pinned) {
-                await api.put(`/blogs/${blog.id}/unpin`);
+                await blogAPI.unpin(blog.id);
             } else {
-                await api.put(`/blogs/${blog.id}/pin`);
+                await blogAPI.togglePin(blog.id);
             }
             // Refresh blogs
             fetchBlogs();

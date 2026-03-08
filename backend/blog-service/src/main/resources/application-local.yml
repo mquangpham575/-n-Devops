@@ -7,6 +7,12 @@ spring:
     username: postgres
     password: postgres
 
+services:
+  file-service:
+    url: http://localhost:8083
+  user-service:
+    url: http://localhost:8081
+
 file:
   service:
     url: http://localhost:8083

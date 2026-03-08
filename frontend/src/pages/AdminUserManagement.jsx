@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../services/api';
+import { userAPI, blogAPI } from '../services/api';
 import { Users, Shield, AlertCircle, CheckCircle, X, Search } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 import ConfirmModal from '../components/ConfirmModal';
@@ -24,7 +24,7 @@ const AdminUserManagement = () => {
     const fetchUsers = async () => {
         try {
             setLoading(true);
-            const response = await api.get('/users');
+            const response = await userAPI.getAllUsers();
             setUsers(response.data);
             setError('');
         } catch (err) {
@@ -36,7 +36,7 @@ const AdminUserManagement = () => {
 
     const fetchBlogs = async () => {
         try {
-            const response = await api.get('/blogs?includeInactive=true');
+            const response = await blogAPI.getAll({ includeInactive: true });
             setBlogs(response.data);
         } catch (err) {
             console.error('Failed to load blogs:', err);
@@ -61,7 +61,7 @@ const AdminUserManagement = () => {
                 setUpdating(userId);
                 setError('');
                 try {
-                    const response = await api.put(`/users/${userId}/role`, { role: newRole });
+                    const response = await userAPI.updateRole(userId, newRole);
                     setUsers(prev => prev.map(u => u.id === userId ? response.data : u));
                     showToast(`Đã cập nhật quyền thành ${newRole}`, 'success');
                 } catch (err) {

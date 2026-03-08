@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Pin, Calendar, User, ArrowRight, FileText, File, Play, Pause } from 'lucide-react';
-import api from '../services/api';
+import { blogAPI } from '../services/api';
 
 const FeaturedBanner = () => {
     const [pinnedBlogs, setPinnedBlogs] = useState([]);
@@ -26,7 +26,7 @@ const FeaturedBanner = () => {
 
     const fetchPinnedBlogs = async () => {
         try {
-            const response = await api.get('/blogs/pinned');
+            const response = await blogAPI.getPinned();
             setPinnedBlogs(response.data);
         } catch (error) {
             console.error('Failed to fetch pinned blogs:', error);

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
-import api from '../services/api';
+import { commentAPI, blogAPI } from '../services/api';
 import { MessageCircle, Send, Edit2, Trash2, AlertCircle, Reply } from 'lucide-react';
 import { usePermission } from '../hooks/usePermission';
 import ConfirmModal from './ConfirmModal';
@@ -27,7 +27,7 @@ const CommentSection = ({ blogId }) => {
 
     const fetchComments = async () => {
         try {
-            const response = await api.get(`/blogs/${blogId}/comments`);
+            const response = await commentAPI.getByBlog(blogId);
             setComments(response.data);
         } catch (error) {
             console.error('Failed to fetch comments:', error);
@@ -42,7 +42,7 @@ const CommentSection = ({ blogId }) => {
         setError('');
 
         try {
-            await api.post(`/blogs/${blogId}/comments`, { content: newComment });
+            await commentAPI.create({ blogId, content: newComment });
             setNewComment('');
             fetchComments();
         } catch (error) {
@@ -56,7 +56,7 @@ const CommentSection = ({ blogId }) => {
         if (!editContent.trim()) return;
 
         try {
-            await api.put(`/comments/${commentId}`, { content: editContent });
+            await commentAPI.update(commentId, { content: editContent });
             setEditingId(null);
             setEditContent('');
             fetchComments();
@@ -72,7 +72,7 @@ const CommentSection = ({ blogId }) => {
     const confirmDelete = async () => {
         const commentId = deleteModal.commentId;
         try {
-            await api.delete(`/comments/${commentId}`);
+            await commentAPI.delete(commentId);
             fetchComments();
         } catch (error) {
             console.error(error);
@@ -94,10 +94,7 @@ const CommentSection = ({ blogId }) => {
                 ? `${replyTags.trim()} ${replyContent.trim()}`
                 : replyContent.trim();
             
-            await api.post(`/blogs/${blogId}/comments`, { 
-                content: fullContent,
-                parentId: replyingTo.parentId
-            });
+            await commentAPI.create({ blogId, content: fullContent, parentId: replyingTo.parentId });
             setReplyTags('');
             setReplyContent('');
             setReplyingTo(null);
