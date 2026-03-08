@@ -1,17 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
-import { Users, Shield, AlertCircle, CheckCircle, X } from 'lucide-react';
+import { Users, Shield, AlertCircle, CheckCircle, X, Search } from 'lucide-react';
+import { useToast } from '../context/ToastContext';
+import ConfirmModal from '../components/ConfirmModal';
 
 const AdminUserManagement = () => {
     const [users, setUsers] = useState([]);
+    const [blogs, setBlogs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [updating, setUpdating] = useState(null);
     const [successMessage, setSuccessMessage] = useState('');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [confirmModal, setConfirmModal] = useState({ open: false });
+    const showToast = useToast();
 
     useEffect(() => {
         fetchUsers();
+        fetchBlogs();
     }, []);
 
     const fetchUsers = async () => {
@@ -27,30 +34,44 @@ const AdminUserManagement = () => {
         }
     };
 
-    const handleRoleChange = async (userId, newRole) => {
-        if (!window.confirm(`Are you sure you want to change this user's role to ${newRole}?`)) {
-            return;
-        }
-
-        setUpdating(userId);
-        setError('');
-        setSuccessMessage('');
-
+    const fetchBlogs = async () => {
         try {
-            const response = await api.put(`/users/${userId}/role`, { role: newRole });
-
-            // Update local state
-            setUsers(users.map(user =>
-                user.id === userId ? response.data : user
-            ));
-
-            setSuccessMessage(`Role updated successfully to ${newRole}`);
-            setTimeout(() => setSuccessMessage(''), 3000);
+            const response = await api.get('/blogs?includeInactive=true');
+            setBlogs(response.data);
         } catch (err) {
-            setError(err.response?.data?.error || 'Failed to update role');
-        } finally {
-            setUpdating(null);
+            console.error('Failed to load blogs:', err);
         }
+    };
+
+    const getBlogCountForUser = (userId) => {
+        return blogs.filter(blog => blog.authorId === userId).length;
+    };
+
+    const handleClearSearch = () => {
+        setSearchQuery('');
+    };
+
+    const handleRoleChange = (userId, newRole, currentUsername) => {
+        setConfirmModal({
+            open: true,
+            title: 'Thay đổi quyền',
+            message: `Thay đổi quyền của ${currentUsername || 'người dùng'} thành ${newRole}?`,
+            variant: 'warning',
+            onConfirm: async () => {
+                setUpdating(userId);
+                setError('');
+                try {
+                    const response = await api.put(`/users/${userId}/role`, { role: newRole });
+                    setUsers(prev => prev.map(u => u.id === userId ? response.data : u));
+                    showToast(`Đã cập nhật quyền thành ${newRole}`, 'success');
+                } catch (err) {
+                    showToast(err.response?.data?.error || 'Không thể cập nhật quyền', 'error');
+                } finally {
+                    setUpdating(null);
+                    setConfirmModal({ open: false });
+                }
+            },
+        });
     };
 
     const getRoleBadgeColor = (role) => {
@@ -74,8 +95,20 @@ const AdminUserManagement = () => {
         );
     }
 
+    // Filter users by search query (client-side)
+    const filteredUsers = users.filter(user => {
+        if (searchQuery && searchQuery.trim()) {
+            const query = searchQuery.toLowerCase();
+            const matchesUsername = user.username?.toLowerCase().includes(query);
+            const matchesEmail = user.email?.toLowerCase().includes(query);
+            
+            return matchesUsername || matchesEmail;
+        }
+        return true;
+    });
+
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">
@@ -87,6 +120,50 @@ const AdminUserManagement = () => {
                     <Link to="/admin" className="text-primary-600 hover:text-primary-700 text-sm mt-2 inline-block">
                         ← Back to Dashboard
                     </Link>
+                </div>
+
+                {/* Stats */}
+                <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="card bg-gradient-to-br from-primary-500 to-primary-600 text-white">
+                        <h3 className="text-lg font-semibold mb-2">Total Users</h3>
+                        <p className="text-4xl font-bold">{users.length}</p>
+                    </div>
+                    <div className="card bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+                        <h3 className="text-lg font-semibold mb-2">Editors</h3>
+                        <p className="text-4xl font-bold">
+                            {users.filter(u => u.role === 'EDITOR').length}
+                        </p>
+                    </div>
+                    <div className="card bg-gradient-to-br from-green-500 to-green-600 text-white">
+                        <h3 className="text-lg font-semibold mb-2">Regular Users</h3>
+                        <p className="text-4xl font-bold">
+                            {users.filter(u => u.role === 'USER').length}
+                        </p>
+                    </div>
+                </div>
+
+                {/* Search Bar */}
+                <div className="mb-6">
+                    <div className="relative">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Tìm kiếm theo tên user hoặc email..."
+                            className="w-full pl-12 pr-10 py-3 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
+                        />
+                        {searchQuery && (
+                            <button
+                                type="button"
+                                onClick={handleClearSearch}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                                title="Xóa tìm kiếm"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        )}
+                    </div>
                 </div>
 
                 {/* Messages */}
@@ -109,10 +186,18 @@ const AdminUserManagement = () => {
 
                 {/* User Table */}
                 <div className="card overflow-hidden">
-                    {users.length === 0 ? (
+                    {filteredUsers.length === 0 ? (
                         <div className="text-center py-12">
                             <Users className="h-16 w-16 text-slate-300 mx-auto mb-4" />
-                            <p className="text-slate-500">No users found</p>
+                            <p className="text-slate-500">{searchQuery ? 'Không tìm thấy user nào' : 'No users found'}</p>
+                            {searchQuery && (
+                                <button
+                                    onClick={handleClearSearch}
+                                    className="mt-4 text-primary-600 hover:text-primary-700 text-sm font-medium"
+                                >
+                                    Xóa tìm kiếm
+                                </button>
+                            )}
                         </div>
                     ) : (
                         <div className="overflow-x-auto">
@@ -132,12 +217,15 @@ const AdminUserManagement = () => {
                                             Status
                                         </th>
                                         <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
+                                            Posts
+                                        </th>
+                                        <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                                             Change Role
                                         </th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-200">
-                                    {users.map((user) => (
+                                    {filteredUsers.map((user) => (
                                         <tr key={user.id} className="hover:bg-slate-50 transition-colors">
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center space-x-2">
@@ -165,12 +253,17 @@ const AdminUserManagement = () => {
                                                 )}
                                             </td>
                                             <td className="px-6 py-4">
+                                                <span className="px-2 py-1 bg-slate-100 text-slate-700 rounded-md text-sm font-medium">
+                                                    {getBlogCountForUser(user.id)}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4">
                                                 {user.role === 'ADMIN' ? (
                                                     <span className="text-sm text-slate-400">Cannot modify</span>
                                                 ) : (
                                                     <select
                                                         value={user.role}
-                                                        onChange={(e) => handleRoleChange(user.id, e.target.value)}
+                                                        onChange={(e) => handleRoleChange(user.id, e.target.value, user.username)}
                                                         disabled={updating === user.id}
                                                         className="input-field text-sm py-1 px-2"
                                                     >
@@ -191,27 +284,17 @@ const AdminUserManagement = () => {
                         </div>
                     )}
                 </div>
-
-                {/* Stats */}
-                <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="card bg-gradient-to-br from-primary-500 to-primary-600 text-white">
-                        <h3 className="text-lg font-semibold mb-2">Total Users</h3>
-                        <p className="text-4xl font-bold">{users.length}</p>
-                    </div>
-                    <div className="card bg-gradient-to-br from-blue-500 to-blue-600 text-white">
-                        <h3 className="text-lg font-semibold mb-2">Editors</h3>
-                        <p className="text-4xl font-bold">
-                            {users.filter(u => u.role === 'EDITOR').length}
-                        </p>
-                    </div>
-                    <div className="card bg-gradient-to-br from-green-500 to-green-600 text-white">
-                        <h3 className="text-lg font-semibold mb-2">Regular Users</h3>
-                        <p className="text-4xl font-bold">
-                            {users.filter(u => u.role === 'USER').length}
-                        </p>
-                    </div>
-                </div>
             </div>
+
+            <ConfirmModal
+                isOpen={confirmModal.open}
+                onClose={() => setConfirmModal({ open: false })}
+                onConfirm={confirmModal.onConfirm}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                confirmText="Xác nhận"
+                variant={confirmModal.variant || 'warning'}
+            />
         </div>
     );
 };

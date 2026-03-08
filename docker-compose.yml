@@ -58,7 +58,7 @@ services:
       SPRING_MAIL_PASSWORD: skes mwnj exgf zbdt
       JWT_SECRET: 5367566B59703373367639792F423F4528482B4D6251655468576D5A71347437
       JWT_EXPIRATION: 86400000
-      APP_BASE_URL: http://localhost:8888
+      APP_BASE_URL: http://localhost:5173
     ports:
       - "9001:8081"
     depends_on:
@@ -184,40 +184,20 @@ services:
       - blog-network
     restart: unless-stopped
 
-  # API Gateway
-  api-gateway:
-    build:
-      context: ./backend/api-gateway
-      dockerfile: Dockerfile
-    container_name: api-gateway
-    environment:
-      SERVER_PORT: 9000
-      USER_SERVICE_URL: http://user-service:8081
-      BLOG_SERVICE_URL: http://blog-service:8082
-      FILE_SERVICE_URL: http://file-service:8083
-    ports:
-      - "9000:9000"
-    depends_on:
-      - user-service
-      - blog-service
-      - file-service
-    networks:
-      - blog-network
-    volumes:
-      - ./backend/api-gateway/src/main/resources/application.yml:/app/application.yml
-      - ./backend/api-gateway/src/main/resources/application.yml:/app/config/application.yml
-    restart: unless-stopped
-
   # Frontend
+  # Nginx trong frontend container đóng vai trò reverse proxy trực tiếp đến từng service.
+  # Khi 1 service hỏng, chỉ các route của service đó bị ảnh hưởng, các service còn lại vẫn hoạt động bình thường.
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: frontend
     ports:
-      - "8888:80"
+      - "5173:80"
     depends_on:
-      - api-gateway
+      - user-service
+      - blog-service
+      - file-service
     networks:
       - blog-network
     restart: unless-stopped

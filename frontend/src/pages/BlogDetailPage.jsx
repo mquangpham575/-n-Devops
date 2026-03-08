@@ -4,16 +4,21 @@ import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { Calendar, User, ArrowLeft, Edit, Trash2, FileText, Download, ExternalLink, File } from 'lucide-react';
 import CommentSection from '../components/CommentSection';
+import FollowButton from '../components/FollowButton';
 import { usePermission } from '../hooks/usePermission';
+import { useToast } from '../context/ToastContext';
+import ConfirmModal from '../components/ConfirmModal';
 
 const BlogDetailPage = () => {
     const { id } = useParams();
     const [blog, setBlog] = useState(null);
     const [loading, setLoading] = useState(true);
     const [deleting, setDeleting] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const { isAdmin, user } = useAuth();
     const { can } = usePermission();
     const navigate = useNavigate();
+    const showToast = useToast();
 
     const isImageFile = (blog) => {
         // Check by mimeType if available
@@ -201,18 +206,15 @@ const BlogDetailPage = () => {
     };
 
     const handleDelete = async () => {
-        if (!confirm('Are you sure you want to delete this blog?')) {
-            return;
-        }
-
         setDeleting(true);
         try {
             await api.delete(`/blogs/${id}`);
             navigate('/');
         } catch (error) {
-            alert(error.response?.data?.error || 'Failed to delete blog');
+            showToast(error.response?.data?.error || 'Không thể xóa bài viết', 'error');
         } finally {
             setDeleting(false);
+            setShowDeleteConfirm(false);
         }
     };
 
@@ -246,7 +248,7 @@ const BlogDetailPage = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-4xl mx-auto">
                 {/* Navigation */}
                 <Link
@@ -367,6 +369,12 @@ const BlogDetailPage = () => {
                                     <Calendar className="h-5 w-5" />
                                     <span>{formatDate(blog.createdAt)}</span>
                                 </div>
+                                {blog.authorId && user && user.id !== blog.authorId && (
+                                    <FollowButton 
+                                        userId={blog.authorId} 
+                                        username={blog.authorUsername}
+                                    />
+                                )}
                             </div>
 
                             {blog.authorId && can.updateBlog(blog.authorId) && (
@@ -379,12 +387,13 @@ const BlogDetailPage = () => {
                                         <span>Edit</span>
                                     </Link>
                                     <button
-                                        onClick={handleDelete}
+                                        type="button"
+                                        onClick={() => setShowDeleteConfirm(true)}
                                         disabled={deleting}
                                         className="inline-flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium disabled:opacity-50"
                                     >
                                         <Trash2 className="h-4 w-4" />
-                                        <span>{deleting ? 'Deleting...' : 'Delete'}</span>
+                                        <span>{deleting ? 'Đang xóa...' : 'Xóa'}</span>
                                     </button>
                                 </div>
                             )}
@@ -409,6 +418,17 @@ const BlogDetailPage = () => {
                     <CommentSection blogId={blog.id} />
                 </article>
             </div>
+
+            <ConfirmModal
+                isOpen={showDeleteConfirm}
+                onClose={() => setShowDeleteConfirm(false)}
+                onConfirm={handleDelete}
+                title="Xóa bài viết"
+                message={`Bài viết "${blog?.title}" sẽ bị xóa vĩnh viễn. Bạn có chắc chắn?`}
+                confirmText="Xóa"
+                loading={deleting}
+                variant="danger"
+            />
         </div>
     );
 };

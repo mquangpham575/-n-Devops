@@ -1,0 +1,119 @@
+/* ══════════════════════════════════════════════════════
+   TRUNG THU THEME — Đèn lồng · Chữ vàng · Nền đen
+   Font: Crimson Pro (serif, elegant, Vietnamese support)
+   ══════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&display=swap');
+
+/* ── Background ── */
+body.theme-trungthu {
+    background-image: url('/images/trung-thu.jpg') !important;
+    background-size: cover !important;
+    background-attachment: fixed !important;
+    background-position: center center !important;
+    background-color: #0d0800 !important;
+}
+
+/* ── Font ── */
+body.theme-trungthu,
+body.theme-trungthu * {
+    font-family: 'Crimson Pro', Georgia, serif !important;
+}
+body.theme-trungthu h1,
+body.theme-trungthu h2,
+body.theme-trungthu h3,
+body.theme-trungthu h4 {
+    font-weight: 700 !important;
+    font-style: italic !important;
+    letter-spacing: 0.03em;
+}
+
+/* ── Cards / panels — dark semi-transparent ── */
+body.theme-trungthu .bg-white                { background: rgba(15, 8, 0, 0.91) !important; }
+body.theme-trungthu .bg-slate-50             { background: rgba(12, 6, 0, 0.93) !important; }
+body.theme-trungthu .bg-slate-100            { background: rgba(10, 5, 0, 0.95) !important; }
+body.theme-trungthu .bg-gray-50              { background: rgba(14, 7, 0, 0.92) !important; }
+body.theme-trungthu .bg-gray-100             { background: rgba(10, 5, 0, 0.94) !important; }
+body.theme-trungthu .bg-blue-50              { background: rgba(18, 10, 0, 0.91) !important; }
+/* .card class used by blog cards */
+body.theme-trungthu .card                   { background: rgba(15, 8, 0, 0.91) !important; border-color: #5D4037 !important; }
+/* Any rounded element with inline bg-white */
+body.theme-trungthu [class*="rounded"]       { background-color: rgba(15, 8, 0, 0.88); }
+
+/* ── Navbar ── */
+body.theme-trungthu nav {
+    background: rgba(18, 8, 0, 0.97) !important;
+    border-bottom: 2px solid #FFD700 !important;
+    box-shadow: 0 2px 20px rgba(255, 200, 0, 0.25) !important;
+}
+
+/* ── Gold text ── */
+body.theme-trungthu .text-slate-900,
+body.theme-trungthu .text-gray-900  { color: #FFD700 !important; }
+
+body.theme-trungthu .text-slate-800,
+body.theme-trungthu .text-gray-800  { color: #FFC107 !important; }
+
+body.theme-trungthu .text-slate-700,
+body.theme-trungthu .text-gray-700  { color: #FFCA28 !important; }
+
+body.theme-trungthu .text-slate-600,
+body.theme-trungthu .text-gray-600  { color: #FFB300 !important; }
+
+body.theme-trungthu .text-slate-500,
+body.theme-trungthu .text-gray-500  { color: #FFD54F !important; }
+
+body.theme-trungthu .text-slate-400,
+body.theme-trungthu .text-gray-400  { color: #FFF59D !important; }
+
+body.theme-trungthu .text-slate-300,
+body.theme-trungthu .text-gray-300  { color: #FFF9C4 !important; }
+
+/* ── Borders ── */
+body.theme-trungthu .border-slate-200,
+body.theme-trungthu .border-gray-200 { border-color: #5D4037 !important; }
+
+body.theme-trungthu .border-slate-300,
+body.theme-trungthu .border-gray-300 { border-color: #795548 !important; }
+
+/* ── Primary → gold ── */
+body.theme-trungthu .text-primary-600  { color: #FFD700 !important; }
+body.theme-trungthu .text-primary-700  { color: #FFC107 !important; }
+body.theme-trungthu .bg-primary-600    { background: #B8860B !important; }
+body.theme-trungthu .bg-primary-700    { background: #9A7209 !important; }
+body.theme-trungthu .border-primary-300{ border-color: #FFD700 !important; }
+body.theme-trungthu .ring-primary-500  { --tw-ring-color: #FFD700 !important; }
+body.theme-trungthu .hover\:bg-primary-700:hover { background: #9A7209 !important; }
+body.theme-trungthu .hover\:text-primary-600:hover { color: #FFD700 !important; }
+body.theme-trungthu .focus\:ring-primary-500:focus { --tw-ring-color: #FFD700 !important; }
+
+/* ── Shadows — golden glow ── */
+body.theme-trungthu .shadow-sm { box-shadow: 0 1px 6px rgba(255, 200, 0, 0.15) !important; }
+body.theme-trungthu .shadow-md { box-shadow: 0 4px 16px rgba(255, 200, 0, 0.2) !important; }
+body.theme-trungthu .shadow-lg { box-shadow: 0 8px 30px rgba(255, 200, 0, 0.25) !important; }
+body.theme-trungthu .shadow-xl { box-shadow: 0 12px 40px rgba(255, 200, 0, 0.3) !important; }
+
+/* ── Hover backgrounds ── */
+body.theme-trungthu .hover\:bg-slate-50:hover { background: rgba(40, 20, 0, 0.9) !important; }
+body.theme-trungthu .hover\:bg-primary-50:hover { background: rgba(255, 200, 0, 0.1) !important; }
+
+/* ── Inputs ── */
+body.theme-trungthu input[type="text"],
+body.theme-trungthu input[type="email"],
+body.theme-trungthu input[type="password"],
+body.theme-trungthu textarea {
+    background: rgba(30, 15, 0, 0.8) !important;
+    border-color: #5D4037 !important;
+    color: #FFD700 !important;
+}
+body.theme-trungthu input::placeholder,
+body.theme-trungthu textarea::placeholder {
+    color: #A1887F !important;
+}
+
+/* ── Tags / badges ── */
+body.theme-trungthu .bg-primary-50 { background: rgba(255, 200, 0, 0.1) !important; }
+body.theme-trungthu .text-primary-800 { color: #FFD700 !important; }
+
+/* ── Dividers ── */
+body.theme-trungthu .divide-y > * { border-color: #3E2000 !important; }

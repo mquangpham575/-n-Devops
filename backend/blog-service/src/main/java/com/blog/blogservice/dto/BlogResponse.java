@@ -14,7 +14,8 @@ import java.util.UUID;
 @AllArgsConstructor
 public class BlogResponse {
     private UUID id;
-    private String code;
+    private UUID categoryId;
+    private String categoryName;
     private String name;
     private String title;
     private String content;

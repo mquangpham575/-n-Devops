@@ -31,7 +31,16 @@ public class SecurityConfig {
                 .cors(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/verify-email").permitAll()
+                        .requestMatchers("/api/internal/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
+                        // Public read endpoints
+                        .requestMatchers(org.springframework.http.HttpMethod.GET,
+                                "/api/follow/*/stats",
+                                "/api/follow/*/followers",
+                                "/api/follow/*/following",
+                                "/api/follow/following-ids",
+                                "/api/users",
+                                "/api/users/*").permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))

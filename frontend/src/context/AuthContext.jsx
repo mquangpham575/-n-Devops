@@ -21,7 +21,14 @@ export const AuthProvider = ({ children }) => {
         const userData = localStorage.getItem('user');
 
         if (token && userData) {
-            setUser(JSON.parse(userData));
+            const parsed = JSON.parse(userData);
+            // Tương thích ngược: nếu có userId thay vì id thì chuẩn hóa
+            if (parsed.userId && !parsed.id) {
+                parsed.id = parsed.userId;
+                delete parsed.userId;
+                localStorage.setItem('user', JSON.stringify(parsed));
+            }
+            setUser(parsed);
         }
         setLoading(false);
     }, []);
@@ -29,7 +36,10 @@ export const AuthProvider = ({ children }) => {
     const login = async (username, password) => {
         try {
             const response = await api.post('/auth/login', { username, password });
-            const { token, ...userData } = response.data;
+            // Backend trả về { token, userId, username, email, role }
+            // Chuẩn hóa userId → id để dùng nhất quán trong toàn app
+            const { token, userId, ...rest } = response.data;
+            const userData = { ...rest, id: userId };
 
             localStorage.setItem('token', token);
             localStorage.setItem('user', JSON.stringify(userData));

@@ -23,10 +23,10 @@ public class Blog {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false, unique = true, length = 50)
-    private String code;
+    @Column(name = "category_id", nullable = false)
+    private UUID categoryId;
 
-    @Column(nullable = false, length = 200)
+    @Column(length = 200)
     private String name;
 
     @Column(nullable = false, length = 500)

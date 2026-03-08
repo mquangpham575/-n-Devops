@@ -1,0 +1,109 @@
+/* ══════════════════════════════════════════════════════
+   GIÁNG SINH THEME — Tuyết rơi · Chữ xanh lá · Nền trắng
+   Font: Nunito (rounded, festive, full Vietnamese support)
+   ══════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,600&display=swap');
+
+/* ── Background ── */
+body.theme-giangsinh {
+    background-image: url('/images/giang-sinh.jpg') !important;
+    background-size: cover !important;
+    background-attachment: fixed !important;
+    background-position: center center !important;
+    background-color: #f0fff4 !important;
+}
+
+/* ── Font ── */
+body.theme-giangsinh,
+body.theme-giangsinh * {
+    font-family: 'Nunito', sans-serif !important;
+}
+body.theme-giangsinh h1,
+body.theme-giangsinh h2,
+body.theme-giangsinh h3,
+body.theme-giangsinh h4 {
+    font-weight: 900 !important;
+    letter-spacing: -0.01em;
+}
+
+/* ── Cards / panels — semi-transparent white ── */
+body.theme-giangsinh .bg-white              { background: rgba(245, 255, 248, 0.93) !important; }
+body.theme-giangsinh .bg-slate-50           { background: rgba(240, 255, 244, 0.91) !important; }
+body.theme-giangsinh .bg-slate-100          { background: rgba(232, 255, 238, 0.89) !important; }
+body.theme-giangsinh .bg-gray-50            { background: rgba(244, 255, 247, 0.91) !important; }
+body.theme-giangsinh .bg-gray-100           { background: rgba(236, 255, 241, 0.89) !important; }
+
+/* ── Navbar ── */
+body.theme-giangsinh nav {
+    background: rgba(240, 255, 244, 0.97) !important;
+    border-bottom: 2px solid #43a047 !important;
+    box-shadow: 0 2px 12px rgba(27, 94, 32, 0.15) !important;
+}
+
+/* ── Christmas green text ── */
+body.theme-giangsinh .text-slate-900,
+body.theme-giangsinh .text-gray-900  { color: #1b5e20 !important; }
+
+body.theme-giangsinh .text-slate-800,
+body.theme-giangsinh .text-gray-800  { color: #2e7d32 !important; }
+
+body.theme-giangsinh .text-slate-700,
+body.theme-giangsinh .text-gray-700  { color: #388e3c !important; }
+
+body.theme-giangsinh .text-slate-600,
+body.theme-giangsinh .text-gray-600  { color: #43a047 !important; }
+
+body.theme-giangsinh .text-slate-500,
+body.theme-giangsinh .text-gray-500  { color: #66bb6a !important; }
+
+body.theme-giangsinh .text-slate-400,
+body.theme-giangsinh .text-gray-400  { color: #a5d6a7 !important; }
+
+body.theme-giangsinh .text-slate-300,
+body.theme-giangsinh .text-gray-300  { color: #c8e6c9 !important; }
+
+/* ── Borders ── */
+body.theme-giangsinh .border-slate-200,
+body.theme-giangsinh .border-gray-200 { border-color: #c8e6c9 !important; }
+
+body.theme-giangsinh .border-slate-300,
+body.theme-giangsinh .border-gray-300 { border-color: #a5d6a7 !important; }
+
+/* ── Primary → Christmas green ── */
+body.theme-giangsinh .text-primary-600  { color: #388e3c !important; }
+body.theme-giangsinh .text-primary-700  { color: #2e7d32 !important; }
+body.theme-giangsinh .bg-primary-600    { background: #388e3c !important; }
+body.theme-giangsinh .bg-primary-700    { background: #2e7d32 !important; }
+body.theme-giangsinh .border-primary-300{ border-color: #a5d6a7 !important; }
+body.theme-giangsinh .ring-primary-500  { --tw-ring-color: #43a047 !important; }
+body.theme-giangsinh .hover\:bg-primary-700:hover { background: #2e7d32 !important; }
+body.theme-giangsinh .hover\:text-primary-600:hover { color: #388e3c !important; }
+body.theme-giangsinh .focus\:ring-primary-500:focus { --tw-ring-color: #43a047 !important; }
+
+/* ── Shadows — green tint ── */
+body.theme-giangsinh .shadow-sm { box-shadow: 0 1px 4px rgba(27, 94, 32, 0.12) !important; }
+body.theme-giangsinh .shadow-md { box-shadow: 0 4px 12px rgba(27, 94, 32, 0.18) !important; }
+body.theme-giangsinh .shadow-lg { box-shadow: 0 8px 24px rgba(27, 94, 32, 0.2) !important; }
+body.theme-giangsinh .shadow-xl { box-shadow: 0 12px 36px rgba(27, 94, 32, 0.22) !important; }
+
+/* ── Hover backgrounds ── */
+body.theme-giangsinh .hover\:bg-slate-50:hover { background: rgba(236, 255, 240, 0.9) !important; }
+body.theme-giangsinh .hover\:bg-primary-50:hover { background: rgba(67, 160, 71, 0.1) !important; }
+
+/* ── Inputs ── */
+body.theme-giangsinh input[type="text"],
+body.theme-giangsinh input[type="email"],
+body.theme-giangsinh input[type="password"],
+body.theme-giangsinh textarea {
+    border-color: #c8e6c9 !important;
+    color: #2e7d32 !important;
+}
+body.theme-giangsinh input::placeholder,
+body.theme-giangsinh textarea::placeholder {
+    color: #a5d6a7 !important;
+}
+
+/* ── Tags / badges ── */
+body.theme-giangsinh .bg-primary-50 { background: rgba(67, 160, 71, 0.1) !important; }
+body.theme-giangsinh .text-primary-800 { color: #1b5e20 !important; }

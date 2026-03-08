@@ -1,25 +1,56 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../services/api';
-import { Calendar, User, ArrowRight, BookOpen, FileText, File, Download, ExternalLink } from 'lucide-react';
+import api, { categoryAPI } from '../services/api';
+import { Calendar, User, ArrowRight, BookOpen, FileText, File, Download, ExternalLink, ChevronDown, Filter, Search, X } from 'lucide-react';
 import FeaturedBanner from '../components/FeaturedBanner';
 
 const BlogListPage = () => {
     const [blogs, setBlogs] = useState([]);
+    const [categories, setCategories] = useState([]);
+    const [selectedCategory, setSelectedCategory] = useState('');
+    const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(true);
+    const [showDropdown, setShowDropdown] = useState(false);
+    const dropdownRef = useRef(null);
 
     useEffect(() => {
         fetchBlogs();
+        fetchCategories();
+    }, []);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setShowDropdown(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
     const fetchBlogs = async () => {
         try {
+            setLoading(true);
             const response = await api.get('/blogs');
             setBlogs(response.data);
         } catch (error) {
             console.error('Failed to fetch blogs:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleClearSearch = () => {
+        setSearchQuery('');
+    };
+
+    const fetchCategories = async () => {
+        try {
+            const response = await categoryAPI.getActiveCategories();
+            setCategories(response.data);
+        } catch (error) {
+            console.error('Failed to fetch categories:', error);
         }
     };
 
@@ -227,35 +258,181 @@ const BlogListPage = () => {
         );
     }
 
+    // Filter blogs by search query and category (client-side)
+    const filteredBlogs = blogs.filter(blog => {
+        // Filter by search query
+        if (searchQuery && searchQuery.trim()) {
+            const query = searchQuery.toLowerCase();
+            const matchesName = blog.name?.toLowerCase().includes(query);
+            const matchesTitle = blog.title?.toLowerCase().includes(query);
+            const matchesContent = blog.content?.toLowerCase().includes(query);
+            const matchesAuthor = blog.authorUsername?.toLowerCase().includes(query.replace('@', ''));
+            
+            if (!matchesName && !matchesTitle && !matchesContent && !matchesAuthor) {
+                return false;
+            }
+        }
+        
+        // Filter by category
+        if (selectedCategory && blog.categoryId !== selectedCategory) {
+            return false;
+        }
+        
+        return true;
+    });
+
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto">
                 {/* Featured Banner */}
                 <FeaturedBanner />
 
-                {/* Section Header */}
+                {/* Section Header with Search and Filter */}
                 <div className="mb-8">
-                    <h2 className="text-3xl font-bold text-slate-800 mb-2">
-                        Tất cả bài viết
-                    </h2>
-                    <p className="text-slate-600">
-                        Khám phá các bài viết mới nhất từ cộng đồng
-                    </p>
+                    <div className="flex flex-col gap-4 mb-6">
+                        <div>
+                            <h2 className="text-3xl font-bold text-slate-800 mb-2">
+                                Tất cả bài viết
+                            </h2>
+                            <p className="text-slate-600">
+                                Khám phá các bài viết mới nhất từ cộng đồng
+                            </p>
+                        </div>
+                        
+                        {/* Search and Filter Row */}
+                        <div className="flex flex-col md:flex-row gap-3">
+                            {/* Search Bar */}
+                            <div className="flex-1">
+                                <div className="relative">
+                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                                    <input
+                                        type="text"
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        placeholder="Tìm kiếm theo tên, tiêu đề, nội dung hoặc @username..."
+                                        className="w-full pl-12 pr-10 py-3 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                    />
+                                    {searchQuery && (
+                                        <button
+                                            type="button"
+                                            onClick={handleClearSearch}
+                                            className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                                            title="Xóa tìm kiếm"
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                            
+                            {/* Category Filter Dropdown */}
+                            {categories.length > 0 && (
+                                <div className="relative md:w-auto" ref={dropdownRef}>
+                                <button
+                                    onClick={() => setShowDropdown(!showDropdown)}
+                                    className="flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-slate-300 rounded-xl text-slate-700 font-medium hover:border-blue-500 hover:bg-blue-50 transition-all shadow-sm hover:shadow-md group"
+                                >
+                                    <Filter className="w-4 h-4 text-slate-500 group-hover:text-blue-600" />
+                                    <span className="text-sm">
+                                        {selectedCategory 
+                                            ? categories.find(c => c.id === selectedCategory)?.name 
+                                            : 'Tất cả thể loại'
+                                        }
+                                    </span>
+                                    <span className="ml-1 px-2 py-0.5 bg-slate-100 text-slate-600 text-xs rounded-full group-hover:bg-blue-100 group-hover:text-blue-700">
+                                        {selectedCategory 
+                                            ? blogs.filter(blog => blog.categoryId === selectedCategory).length
+                                            : blogs.length
+                                        }
+                                    </span>
+                                    <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform group-hover:text-blue-600 ${
+                                        showDropdown ? 'rotate-180' : ''
+                                    }`} />
+                                </button>
+
+                                {/* Dropdown Menu */}
+                                {showDropdown && (
+                                    <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden z-50 animate-fadeIn">
+                                        <div className="py-2 max-h-80 overflow-y-auto">
+                                            {/* All Categories Option */}
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedCategory('');
+                                                    setShowDropdown(false);
+                                                }}
+                                                className={`w-full px-4 py-2.5 text-left flex items-center justify-between hover:bg-blue-50 transition-colors ${
+                                                    selectedCategory === '' ? 'bg-blue-50' : ''
+                                                }`}
+                                            >
+                                                <span className={`text-sm font-medium ${
+                                                    selectedCategory === '' ? 'text-blue-600' : 'text-slate-700'
+                                                }`}>
+                                                    Tất cả thể loại
+                                                </span>
+                                                <span className={`px-2 py-0.5 text-xs rounded-full ${
+                                                    selectedCategory === '' 
+                                                        ? 'bg-blue-600 text-white' 
+                                                        : 'bg-slate-100 text-slate-600'
+                                                }`}>
+                                                    {blogs.length}
+                                                </span>
+                                            </button>
+
+                                            {/* Divider */}
+                                            <div className="h-px bg-slate-200 my-1"></div>
+
+                                            {/* Category Options */}
+                                            {categories.map((category) => {
+                                                const count = blogs.filter(blog => blog.categoryId === category.id).length;
+                                                return (
+                                                    <button
+                                                        key={category.id}
+                                                        onClick={() => {
+                                                            setSelectedCategory(category.id);
+                                                            setShowDropdown(false);
+                                                        }}
+                                                        className={`w-full px-4 py-2.5 text-left flex items-center justify-between hover:bg-blue-50 transition-colors ${
+                                                            selectedCategory === category.id ? 'bg-blue-50' : ''
+                                                        }`}
+                                                    >
+                                                        <span className={`text-sm font-medium truncate mr-2 ${
+                                                            selectedCategory === category.id ? 'text-blue-600' : 'text-slate-700'
+                                                        }`}>
+                                                            {category.name}
+                                                        </span>
+                                                        <span className={`px-2 py-0.5 text-xs rounded-full flex-shrink-0 ${
+                                                            selectedCategory === category.id 
+                                                                ? 'bg-blue-600 text-white' 
+                                                                : 'bg-slate-100 text-slate-600'
+                                                        }`}>
+                                                            {count}
+                                                        </span>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                        </div>
+                    </div>
                 </div>
 
                 {/* Blog Grid */}
-                {blogs.length === 0 ? (
+                {filteredBlogs.length === 0 ? (
                     <div className="text-center py-16">
                         <BookOpen className="h-24 w-24 text-slate-300 mx-auto mb-4" />
                         <h3 className="text-2xl font-semibold text-slate-700 mb-2">No blogs yet</h3>
                         <p className="text-slate-600">Check back later for new content!</p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {blogs.map((blog) => (
+                    <div key={`${searchQuery}-${blogs.length}`} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-fadeIn">
+                        {filteredBlogs.map((blog, index) => (
                             <article
                                 key={blog.id}
                                 className="card group hover:scale-105 transition-transform duration-300 flex flex-col h-full"
+                                style={{ animationDelay: `${index * 0.05}s` }}
                             >
                                 {/* Image/File section - Always render with fixed height */}
                                 <div className="mb-4 h-48 overflow-hidden rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
@@ -358,7 +535,7 @@ const BlogListPage = () => {
                                 {/* Content section */}
                                 <div className="flex-1 flex flex-col">
                                     <div className="text-xs font-semibold text-primary-600 mb-2 uppercase tracking-wider">
-                                        {blog.name}
+                                        {blog.categoryName || 'Chưa phân loại'}
                                     </div>
                                     <h2 className="text-2xl font-bold text-slate-800 mb-3 group-hover:text-primary-600 transition-colors line-clamp-2">
                                         {blog.title}

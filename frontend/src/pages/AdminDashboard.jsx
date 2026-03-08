@@ -1,11 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../services/api';
-import { Plus, Edit, Trash2, Calendar, Eye, Users, Pin, PinOff } from 'lucide-react';
+import api, { categoryAPI } from '../services/api';
+import { Plus, Edit, Trash2, Calendar, Eye, Users, Pin, PinOff, FolderOpen, Search, X } from 'lucide-react';
 import DeleteConfirmModal from '../components/DeleteConfirmModal';
+import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 
 const AdminDashboard = () => {
+    const { user } = useAuth();
+    const showToast = useToast();
     const [blogs, setBlogs] = useState([]);
+    const [categories, setCategories] = useState([]);
+    const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(true);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [blogToDelete, setBlogToDelete] = useState(null);
@@ -13,16 +19,37 @@ const AdminDashboard = () => {
 
     useEffect(() => {
         fetchBlogs();
+        fetchCategories();
     }, []);
 
     const fetchBlogs = async () => {
         try {
+            setLoading(true);
             const response = await api.get('/blogs?includeInactive=true');
-            setBlogs(response.data);
+            // Sort: pinned blogs first
+            const sortedBlogs = response.data.sort((a, b) => {
+                if (a.pinned && !b.pinned) return -1;
+                if (!a.pinned && b.pinned) return 1;
+                return 0;
+            });
+            setBlogs(sortedBlogs);
         } catch (error) {
             console.error('Failed to fetch blogs:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleClearSearch = () => {
+        setSearchQuery('');
+    };
+
+    const fetchCategories = async () => {
+        try {
+            const response = await categoryAPI.getAllCategories();
+            setCategories(response.data);
+        } catch (error) {
+            console.error('Failed to fetch categories:', error);
         }
     };
 
@@ -41,7 +68,7 @@ const AdminDashboard = () => {
             setShowDeleteModal(false);
             setBlogToDelete(null);
         } catch (error) {
-            alert(error.response?.data?.error || 'Failed to delete blog');
+            showToast(error.response?.data?.error || 'Không thể xóa bài viết', 'error');
         } finally {
             setDeleting(false);
         }
@@ -62,7 +89,7 @@ const AdminDashboard = () => {
             // Refresh blogs
             fetchBlogs();
         } catch (error) {
-            alert(error.response?.data?.error || 'Failed to update pin status');
+            showToast(error.response?.data?.error || 'Không thể cập nhật trạng thái ghim', 'error');
         }
     };
 
@@ -82,8 +109,22 @@ const AdminDashboard = () => {
         );
     }
 
+    // Filter blogs by search query (client-side)
+    const filteredBlogs = blogs.filter(blog => {
+        if (searchQuery && searchQuery.trim()) {
+            const query = searchQuery.toLowerCase();
+            const matchesName = blog.name?.toLowerCase().includes(query);
+            const matchesTitle = blog.title?.toLowerCase().includes(query);
+            const matchesContent = blog.content?.toLowerCase().includes(query);
+            const matchesAuthor = blog.authorUsername?.toLowerCase().includes(query.replace('@', ''));
+            
+            return matchesName || matchesTitle || matchesContent || matchesAuthor;
+        }
+        return true;
+    });
+
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="mb-8 flex items-center justify-between">
@@ -92,12 +133,20 @@ const AdminDashboard = () => {
                         <p className="text-slate-600 mt-2">Manage your blog posts</p>
                     </div>
                     <div className="flex items-center space-x-3">
+                        {user?.role === 'ADMIN' && (
+                            <Link
+                                to="/admin/users"
+                                className="btn-secondary inline-flex items-center space-x-2"
+                            >
+                                <Users className="h-5 w-5" />
+                                <span>User Management</span>
+                            </Link>
+                        )}
                         <Link
-                            to="/admin/users"
+                            to="/admin/categories"
                             className="btn-secondary inline-flex items-center space-x-2"
                         >
-                            <Users className="h-5 w-5" />
-                            <span>User Management</span>
+                            <span>Category Management</span>
                         </Link>
                         <Link
                             to="/admin/create"
@@ -115,18 +164,55 @@ const AdminDashboard = () => {
                         <h3 className="text-lg font-semibold mb-2">Total Blogs</h3>
                         <p className="text-4xl font-bold">{blogs.length}</p>
                     </div>
+                    <div className="card bg-gradient-to-br from-amber-500 to-amber-600 text-white">
+                        <h3 className="text-lg font-semibold mb-2">Pinned Blogs</h3>
+                        <p className="text-4xl font-bold">{blogs.filter(b => b.pinned).length}</p>
+                    </div>
+                    <div className="card bg-gradient-to-br from-purple-500 to-purple-600 text-white">
+                        <h3 className="text-lg font-semibold mb-2 flex items-center space-x-2">
+                            <FolderOpen className="h-5 w-5" />
+                            <span>Categories</span>
+                        </h3>
+                        <p className="text-4xl font-bold">{categories.length}</p>
+                    </div>
+                </div>
+
+                {/* Search Bar */}
+                <div className="mb-6">
+                    <div className="relative">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Tìm kiếm theo tên, tiêu đề, nội dung hoặc @username..."
+                            className="w-full pl-12 pr-10 py-3 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
+                        />
+                        {searchQuery && (
+                            <button
+                                type="button"
+                                onClick={handleClearSearch}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                                title="Xóa tìm kiếm"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        )}
+                    </div>
                 </div>
 
                 {/* Blog Table */}
                 <div className="card overflow-hidden">
-                    {blogs.length === 0 ? (
+                    {filteredBlogs.length === 0 ? (
                         <div className="text-center py-12">
-                            <h3 className="text-xl font-semibold text-slate-700 mb-2">No blogs yet</h3>
-                            <p className="text-slate-600 mb-6">Create your first blog post to get started</p>
-                            <Link to="/admin/create" className="btn-primary inline-flex items-center space-x-2">
-                                <Plus className="h-5 w-5" />
-                                <span>Create Blog</span>
-                            </Link>
+                            <h3 className="text-xl font-semibold text-slate-700 mb-2">{searchQuery ? 'Không tìm thấy kết quả' : 'No blogs yet'}</h3>
+                            <p className="text-slate-600 mb-6">{searchQuery ? 'Thử tìm kiếm với từ khóa khác' : 'Create your first blog post to get started'}</p>
+                            {!searchQuery && (
+                                <Link to="/admin/create" className="btn-primary inline-flex items-center space-x-2">
+                                    <Plus className="h-5 w-5" />
+                                    <span>Create Blog</span>
+                                </Link>
+                            )}
                         </div>
                     ) : (
                         <div className="overflow-x-auto">
@@ -148,8 +234,12 @@ const AdminDashboard = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-200">
-                                    {blogs.map((blog) => (
-                                        <tr key={blog.id} className="hover:bg-slate-50 transition-colors">
+                                    {filteredBlogs.map((blog, index) => (
+                                        <tr 
+                                            key={`${blog.id}-${searchQuery}`} 
+                                            className="hover:bg-slate-50 transition-colors animate-fadeIn"
+                                            style={{ animationDelay: `${index * 0.03}s` }}
+                                        >
                                             <td className="px-6 py-4">
                                                 <div className="flex items-start">
                                                     <div>

@@ -1,16 +1,28 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Pin, Calendar, User, ArrowRight, FileText, File } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Pin, Calendar, User, ArrowRight, FileText, File, Play, Pause } from 'lucide-react';
 import api from '../services/api';
 
 const FeaturedBanner = () => {
     const [pinnedBlogs, setPinnedBlogs] = useState([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [loading, setLoading] = useState(true);
+    const [isPlaying, setIsPlaying] = useState(true);
 
     useEffect(() => {
         fetchPinnedBlogs();
     }, []);
+
+    // Auto-rotation effect
+    useEffect(() => {
+        if (!isPlaying || pinnedBlogs.length <= 1) return;
+
+        const interval = setInterval(() => {
+            setCurrentIndex((prev) => (prev + 1) % pinnedBlogs.length);
+        }, 3000); // 3 giây
+
+        return () => clearInterval(interval);
+    }, [isPlaying, pinnedBlogs.length]);
 
     const fetchPinnedBlogs = async () => {
         try {
@@ -25,10 +37,16 @@ const FeaturedBanner = () => {
 
     const nextSlide = () => {
         setCurrentIndex((prev) => (prev + 1) % pinnedBlogs.length);
+        setIsPlaying(false); // Dừng tự động khi user thao tác thủ công
     };
 
     const prevSlide = () => {
         setCurrentIndex((prev) => (prev - 1 + pinnedBlogs.length) % pinnedBlogs.length);
+        setIsPlaying(false); // Dừng tự động khi user thao tác thủ công
+    };
+
+    const togglePlayPause = () => {
+        setIsPlaying(!isPlaying);
     };
 
     const formatDate = (dateString) => {
@@ -200,110 +218,130 @@ const FeaturedBanner = () => {
     const currentBlog = pinnedBlogs[currentIndex];
 
     return (
-        <div className="relative w-full h-[500px] mb-12 overflow-hidden rounded-2xl shadow-2xl">
-            {/* Background with gradient overlay */}
-            <div className="absolute inset-0">
-                {currentBlog.imageUrl ? (
-                    isVideoFile(currentBlog) ? (
-                        // Video background
-                        <>
-                            <video
-                                src={currentBlog.imageUrl}
-                                autoPlay
-                                loop
-                                muted
-                                playsInline
-                                className="w-full h-full object-cover"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-transparent"></div>
-                        </>
-                    ) : isDocumentFile(currentBlog) ? (
-                        // File attachment background with card
-                        (() => {
-                            const fileInfo = getFileIcon(currentBlog);
-                            const IconComponent = fileInfo.icon;
-                            return (
-                                <div className="w-full h-full bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900 flex items-center justify-center">
-                                    {/* Large file card on right side */}
-                                    <div className="absolute right-8 top-1/2 -translate-y-1/2 w-80 bg-white/10 backdrop-blur-md rounded-2xl border-2 border-white/20 p-8 shadow-2xl">
-                                        {/* Icon with gradient */}
-                                        <div className="flex justify-center mb-6">
-                                            <div className={`inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-gradient-to-br ${fileInfo.gradient} shadow-xl`}>
-                                                <IconComponent className="w-12 h-12 text-white" strokeWidth={2} />
+        <div className="relative w-full h-[500px] mb-12 overflow-hidden rounded-2xl shadow-2xl bg-black">
+            {/* Render all slides with crossfade */}
+            {pinnedBlogs.map((blog, index) => (
+                <div
+                    key={blog.id}
+                    className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                        index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
+                    }`}
+                >
+                    {blog.imageUrl ? (
+                        isVideoFile(blog) ? (
+                            // Video background
+                            <>
+                                <video
+                                    src={blog.imageUrl}
+                                    autoPlay
+                                    loop
+                                    muted
+                                    playsInline
+                                    className="w-full h-full object-cover"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-transparent"></div>
+                            </>
+                        ) : isDocumentFile(blog) ? (
+                            // File attachment background with card
+                            (() => {
+                                const fileInfo = getFileIcon(blog);
+                                const IconComponent = fileInfo.icon;
+                                return (
+                                    <div className="w-full h-full bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900 flex items-center justify-center">
+                                        {/* Large file card on right side */}
+                                        <div className="absolute right-8 top-1/2 -translate-y-1/2 w-80 bg-white/10 backdrop-blur-md rounded-2xl border-2 border-white/20 p-8 shadow-2xl">
+                                            {/* Icon with gradient */}
+                                            <div className="flex justify-center mb-6">
+                                                <div className={`inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-gradient-to-br ${fileInfo.gradient} shadow-xl`}>
+                                                    <IconComponent className="w-12 h-12 text-white" strokeWidth={2} />
+                                                </div>
                                             </div>
+                                            
+                                            {/* File type badge */}
+                                            <div className="flex justify-center mb-4">
+                                                <div className={`inline-flex items-center px-4 py-2 rounded-full ${fileInfo.badgeBg} border-2 ${fileInfo.borderColor}`}>
+                                                    <span className={`text-sm font-bold ${fileInfo.color} uppercase tracking-wider`}>{fileInfo.name}</span>
+                                                </div>
+                                            </div>
+                                            
+                                            {/* File name */}
+                                            <p className="text-base font-semibold text-white text-center line-clamp-2 px-2">
+                                                {extractFileName(blog)}
+                                            </p>
                                         </div>
                                         
-                                        {/* File type badge */}
-                                        <div className="flex justify-center mb-4">
-                                            <div className={`inline-flex items-center px-4 py-2 rounded-full ${fileInfo.badgeBg} border-2 ${fileInfo.borderColor}`}>
-                                                <span className={`text-sm font-bold ${fileInfo.color} uppercase tracking-wider`}>{fileInfo.name}</span>
-                                            </div>
-                                        </div>
-                                        
-                                        {/* File name */}
-                                        <p className="text-base font-semibold text-white text-center line-clamp-2 px-2">
-                                            {extractFileName(currentBlog)}
-                                        </p>
+                                        {/* Dark gradient overlay for text readability */}
+                                        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent"></div>
                                     </div>
-                                    
-                                    {/* Dark gradient overlay for text readability */}
-                                    <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent"></div>
-                                </div>
-                            );
-                        })()
+                                );
+                            })()
+                        ) : (
+                            // Regular image background
+                            <>
+                                <img
+                                    src={blog.imageUrl}
+                                    alt={blog.title}
+                                    className="w-full h-full object-cover"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-transparent"></div>
+                            </>
+                        )
                     ) : (
-                        // Regular image background
-                        <>
-                            <img
-                                src={currentBlog.imageUrl}
-                                alt={currentBlog.title}
-                                className="w-full h-full object-cover"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-transparent"></div>
-                        </>
-                    )
-                ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-primary-600 via-primary-700 to-primary-800"></div>
-                )}
-            </div>
+                        <div className="w-full h-full bg-gradient-to-br from-primary-600 via-primary-700 to-primary-800"></div>
+                    )}
+                </div>
+            ))}
 
-            {/* Content */}
-            <div className="relative h-full flex items-center px-8 lg:px-16">
-                <div className="max-w-3xl text-white space-y-6 animate-fadeIn">
+            {/* Content overlay */}
+            <div className="relative h-full flex items-center px-8 lg:px-16 z-20">
+                <div className="max-w-3xl text-white space-y-6">
                     {/* Pin badge */}
-                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-500/90 backdrop-blur-sm rounded-full text-sm font-semibold">
+                    <div 
+                        key={`badge-${currentIndex}`}
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-amber-500/90 backdrop-blur-sm rounded-full text-sm font-semibold animate-fadeIn"
+                    >
                         <Pin className="w-4 h-4 fill-current" />
                         <span>Bài viết nổi bật</span>
                     </div>
 
                     {/* Title */}
-                    <h1 className="text-4xl lg:text-6xl font-bold leading-tight">
-                        {currentBlog.title}
+                    <h1 
+                        key={`title-${currentIndex}`}
+                        className="text-4xl lg:text-6xl font-bold leading-tight animate-fadeIn"
+                    >
+                        {pinnedBlogs[currentIndex].title}
                     </h1>
 
                     {/* Description */}
-                    {currentBlog.description && (
-                        <p className="text-lg lg:text-xl text-white/90 leading-relaxed line-clamp-3">
-                            {currentBlog.description}
+                    {pinnedBlogs[currentIndex].description && (
+                        <p 
+                            key={`desc-${currentIndex}`}
+                            className="text-lg lg:text-xl text-white/90 leading-relaxed line-clamp-3 animate-fadeIn"
+                        >
+                            {pinnedBlogs[currentIndex].description}
                         </p>
                     )}
 
                     {/* Meta info */}
-                    <div className="flex items-center gap-6 text-white/80 text-sm">
+                    <div 
+                        key={`meta-${currentIndex}`}
+                        className="flex items-center gap-6 text-white/80 text-sm animate-fadeIn"
+                    >
                         <div className="flex items-center gap-2">
                             <User className="w-4 h-4" />
-                            <span>{currentBlog.authorUsername}</span>
+                            <span>{pinnedBlogs[currentIndex].authorUsername}</span>
                         </div>
                         <div className="flex items-center gap-2">
                             <Calendar className="w-4 h-4" />
-                            <span>{formatDate(currentBlog.createdAt)}</span>
+                            <span>{formatDate(pinnedBlogs[currentIndex].createdAt)}</span>
                         </div>
                     </div>
 
                     {/* Read More Button */}
                     <Link
-                        to={`/blogs/${currentBlog.id}`}
-                        className="inline-flex items-center gap-2 px-8 py-4 bg-white text-primary-700 rounded-xl font-semibold hover:bg-primary-50 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+                        key={`button-${currentIndex}`}
+                        to={`/blogs/${pinnedBlogs[currentIndex].id}`}
+                        className="inline-flex items-center gap-2 px-8 py-4 bg-white text-primary-700 rounded-xl font-semibold hover:bg-primary-50 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 animate-fadeIn"
                     >
                         <span>Đọc ngay</span>
                         <ArrowRight className="w-5 h-5" />
@@ -316,25 +354,42 @@ const FeaturedBanner = () => {
                 <>
                     <button
                         onClick={prevSlide}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-white/20 backdrop-blur-sm hover:bg-white/30 rounded-full transition-all duration-200 group"
+                        className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-white/20 backdrop-blur-sm hover:bg-white/30 rounded-full transition-all duration-200 group z-30"
                         aria-label="Previous slide"
                     >
                         <ChevronLeft className="w-6 h-6 text-white group-hover:scale-110 transition-transform" />
                     </button>
                     <button
                         onClick={nextSlide}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-white/20 backdrop-blur-sm hover:bg-white/30 rounded-full transition-all duration-200 group"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-white/20 backdrop-blur-sm hover:bg-white/30 rounded-full transition-all duration-200 group z-30"
                         aria-label="Next slide"
                     >
                         <ChevronRight className="w-6 h-6 text-white group-hover:scale-110 transition-transform" />
                     </button>
 
+                    {/* Play/Pause button */}
+                    <button
+                        onClick={togglePlayPause}
+                        className="absolute top-4 right-4 p-3 bg-white/20 backdrop-blur-sm hover:bg-white/30 rounded-full transition-all duration-200 group z-30"
+                        aria-label={isPlaying ? 'Pause auto-rotation' : 'Play auto-rotation'}
+                        title={isPlaying ? 'Dừng tự động chuyển' : 'Bật tự động chuyển'}
+                    >
+                        {isPlaying ? (
+                            <Pause className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
+                        ) : (
+                            <Play className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
+                        )}
+                    </button>
+
                     {/* Dots indicator */}
-                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
+                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-30">
                         {pinnedBlogs.map((_, index) => (
                             <button
                                 key={index}
-                                onClick={() => setCurrentIndex(index)}
+                                onClick={() => {
+                                    setCurrentIndex(index);
+                                    setIsPlaying(false); // Dừng tự động khi user chọn slide thủ công
+                                }}
                                 className={`h-2 rounded-full transition-all duration-300 ${
                                     index === currentIndex
                                         ? 'w-8 bg-white'

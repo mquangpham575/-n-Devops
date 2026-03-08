@@ -35,6 +35,9 @@ public class Comment {
     @Column(name = "author_username", nullable = false, length = 50)
     private String authorUsername;
 
+    @Column(name = "parent_id")
+    private UUID parentId;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

@@ -28,14 +28,16 @@ public class SecurityConfig {
                                 .cors(AbstractHttpConfigurer::disable)
                                 .authorizeHttpRequests(auth -> auth
                                                 // Public read access to blogs
-                                                .requestMatchers(HttpMethod.GET, "/api/blogs", "/api/blogs/**")
-                                                .permitAll()
-                                                .requestMatchers("/uploads/**").permitAll()
+                                                .requestMatchers(HttpMethod.GET, "/api/blogs", "/api/blogs/**").permitAll()
+                                                // Public read access to categories
+                                                .requestMatchers(HttpMethod.GET, "/api/categories", "/api/categories/**").permitAll()
                                                 // Public read access to comments
-                                                .requestMatchers(HttpMethod.GET, "/api/blogs/*/comments").permitAll()
-                                                .requestMatchers(HttpMethod.GET, "/api/blogs/*/comments").permitAll()
+                                                .requestMatchers(HttpMethod.GET, "/api/comments/**").permitAll()
+                                                .requestMatchers("/uploads/**").permitAll()
                                                 .requestMatchers("/actuator/**").permitAll()
                                                 .requestMatchers("/error").permitAll()
+                                                // Internal service-to-service calls
+                                                .requestMatchers("/api/internal/**").permitAll()
                                                 // All write operations require authentication
                                                 .anyRequest().authenticated())
                                 .sessionManagement(session -> session

@@ -32,6 +32,12 @@ jwt:
   secret: ${JWT_SECRET:5367566B59703373367639792F423F4528482B4D6251655468576D5A7134743777217A25432A462D4A404E635266556A586E3272357538782F413F4428472B4B}
   expiration: ${JWT_EXPIRATION:86400000}
 
+services:
+  file-service:
+    url: ${FILE_SERVICE_URL:http://file-service:8083}
+  user-service:
+    url: ${USER_SERVICE_URL:http://user-service:8081}
+
 file:
   service:
     url: ${FILE_SERVICE_URL:http://file-service:8083}

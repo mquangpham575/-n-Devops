@@ -65,7 +65,13 @@ public class BlogController {
     @GetMapping
     public ResponseEntity<List<BlogResponse>> getAllBlogs(
             @RequestParam(required = false, defaultValue = "false") boolean includeInactive,
+            @RequestParam(required = false) UUID authorId,
             HttpServletRequest httpRequest) {
+
+        // Filter by author (public endpoint)
+        if (authorId != null) {
+            return ResponseEntity.ok(blogService.getBlogsByAuthor(authorId));
+        }
 
         if (includeInactive) {
             String role = (String) httpRequest.getAttribute("role");
@@ -78,6 +84,24 @@ public class BlogController {
         }
 
         return ResponseEntity.ok(blogService.getPublicBlogs());
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<BlogResponse>> searchBlogs(
+            @RequestParam String query,
+            @RequestParam(required = false, defaultValue = "false") boolean includeInactive,
+            HttpServletRequest httpRequest) {
+
+        // Check if user is authenticated for includeInactive
+        if (includeInactive) {
+            String role = (String) httpRequest.getAttribute("role");
+            if (role == null || (!"ADMIN".equals(role) && !"EDITOR".equals(role))) {
+                // Not authenticated or not authorized, search only public blogs
+                return ResponseEntity.ok(blogService.searchBlogs(query, false));
+            }
+        }
+
+        return ResponseEntity.ok(blogService.searchBlogs(query, includeInactive));
     }
 
     @GetMapping("/{id}")
@@ -165,6 +189,23 @@ public class BlogController {
     @GetMapping("/pinned")
     public ResponseEntity<List<BlogResponse>> getPinnedBlogs() {
         return ResponseEntity.ok(blogService.getPinnedBlogs());
+    }
+
+    @GetMapping("/following")
+    public ResponseEntity<?> getFollowingFeed(HttpServletRequest httpRequest) {
+        try {
+            String userId = httpRequest.getHeader("X-User-Id");
+            if (userId == null || userId.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "Authentication required"));
+            }
+
+            List<BlogResponse> blogs = blogService.getFollowingFeed(userId);
+            return ResponseEntity.ok(blogs);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to fetch following feed: " + e.getMessage()));
+        }
     }
 
     @PutMapping("/{id}/pin")

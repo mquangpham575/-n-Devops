@@ -41,6 +41,10 @@ public class User {
     @Builder.Default
     private Boolean enabled = false;
 
+    @Column(name = "show_email", nullable = false)
+    @Builder.Default
+    private Boolean showEmail = false;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

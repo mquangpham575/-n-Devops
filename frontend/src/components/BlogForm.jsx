@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import api from '../services/api';
+import api, { categoryAPI } from '../services/api';
 import { Save, X, AlertCircle, Image as ImageIcon, FileText, Eye } from 'lucide-react';
 
 const BlogForm = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
-        code: '',
+        categoryId: '',
         name: '',
         title: '',
         content: '',
@@ -17,6 +17,7 @@ const BlogForm = () => {
         originalFileName: '',
         status: true,
     });
+    const [categories, setCategories] = useState([]);
     const [uploadedFile, setUploadedFile] = useState(null); // Track uploaded file info
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -24,16 +25,27 @@ const BlogForm = () => {
     const isEditMode = !!id;
 
     useEffect(() => {
+        fetchCategories();
         if (isEditMode) {
             fetchBlog();
         }
     }, [id]);
 
+    const fetchCategories = async () => {
+        try {
+            const response = await categoryAPI.getActiveCategories();
+            setCategories(response.data);
+        } catch (error) {
+            console.error('Failed to fetch categories:', error);
+            setError('Không thể tải danh sách thể loại');
+        }
+    };
+
     const fetchBlog = async () => {
         try {
             const response = await api.get(`/blogs/${id}`);
             setFormData({
-                code: response.data.code || '',
+                categoryId: response.data.categoryId || '',
                 name: response.data.name || '',
                 title: response.data.title || '',
                 content: response.data.content || '',
@@ -50,7 +62,7 @@ const BlogForm = () => {
                     name: response.data.originalFileName || 'Existing file',
                     type: response.data.imageMimeType || 'application/octet-stream',
                     url: response.data.imageUrl,
-                    size: 0, // Size not available for existing files
+                    size: 0, // Size not available for existing files,
                 });
             }
         } catch (error) {
@@ -148,9 +160,11 @@ const BlogForm = () => {
                                 <ImageIcon className="w-4 h-4" />
                                 Ảnh đại diện, Video hoặc File đính kèm
                             </label>
+                            <p className="text-xs text-slate-500 mb-2">
+                                Hỗ trợ: Ảnh (JPG, PNG, GIF...), Video (MP4, WebM...), PDF, Word, Excel, Text
+                            </p>
                             <input
                                 type="file"
-                                accept="image/*,video/*,application/pdf,text/*"
                                 onChange={handleImageUpload}
                                 className="block w-full text-sm text-slate-500
                                   file:mr-4 file:py-2 file:px-4
@@ -242,47 +256,50 @@ const BlogForm = () => {
                             )}
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {/* Code */}
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">
-                                    Mã *
-                                </label>
-                                <input
-                                    type="text"
-                                    name="code"
-                                    value={formData.code}
-                                    onChange={handleChange}
-                                    className="input-field"
-                                    placeholder="VD: BONGDA, TIKTOK"
-                                    required
-                                    maxLength={50}
-                                    disabled={isEditMode}
-                                />
-                                <p className="mt-1 text-sm text-slate-500">
-                                    {formData.code.length}/50 ký tự {isEditMode && '(không thể sửa)'}
+                        {/* Category */}
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                                Thể loại *
+                            </label>
+                            <select
+                                name="categoryId"
+                                value={formData.categoryId}
+                                onChange={handleChange}
+                                className="input-field"
+                                required
+                            >
+                                <option value="">-- Chọn thể loại --</option>
+                                {categories.map((category) => (
+                                    <option key={category.id} value={category.id}>
+                                        {category.name}
+                                    </option>
+                                ))}
+                            </select>
+                            {categories.length === 0 && (
+                                <p className="mt-1 text-sm text-amber-600">
+                                    Chưa có thể loại. Vui lòng liên hệ admin để thêm thể loại.
                                 </p>
-                            </div>
+                            )}
+                        </div>
 
-                            {/* Name */}
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">
-                                    Tên *
-                                </label>
-                                <input
-                                    type="text"
-                                    name="name"
-                                    value={formData.name}
-                                    onChange={handleChange}
-                                    className="input-field"
-                                    placeholder="VD: Bóng đá, TikTok"
-                                    required
-                                    maxLength={200}
-                                />
-                                <p className="mt-1 text-sm text-slate-500">
-                                    {formData.name.length}/200 ký tự
-                                </p>
-                            </div>
+                        {/* Name */}
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                                Tên blog *
+                            </label>
+                            <input
+                                type="text"
+                                name="name"
+                                value={formData.name}
+                                onChange={handleChange}
+                                className="input-field"
+                                placeholder="Nhập tên blog (tối đa 200 ký tự)"
+                                required
+                                maxLength={200}
+                            />
+                            <p className="mt-1 text-sm text-slate-500">
+                                {formData.name.length}/200 ký tự
+                            </p>
                         </div>
 
                         {/* Title */}
@@ -296,7 +313,7 @@ const BlogForm = () => {
                                 value={formData.title}
                                 onChange={handleChange}
                                 className="input-field"
-                                placeholder="Nhập tiêu đề blog"
+                                placeholder="Nhập tiêu đề blog (tối đa 500 ký tự)"
                                 required
                                 maxLength={500}
                             />

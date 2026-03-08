@@ -1,8 +1,6 @@
 package com.blog.fileservice.service;
 
 import com.blog.fileservice.config.SeaweedFSConfig;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ByteArrayResource;
@@ -25,12 +23,10 @@ public class SeaweedFSService {
     
     private final SeaweedFSConfig seaweedFSConfig;
     private final RestTemplate restTemplate;
-    private final ObjectMapper objectMapper;
     
     public SeaweedFSService(SeaweedFSConfig seaweedFSConfig, RestTemplate restTemplate) {
         this.seaweedFSConfig = seaweedFSConfig;
         this.restTemplate = restTemplate;
-        this.objectMapper = new ObjectMapper();
     }
     
     /**

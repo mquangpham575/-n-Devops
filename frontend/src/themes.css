@@ -1,0 +1,50 @@
+﻿/* ============================================================
+   BLOGHUB THEMES - Default & Dark
+   ============================================================ */
+
+/* ── Dark mode background ── */
+body.theme-dark { background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%) !important; }
+
+/* ── Dark mode overrides ── */
+body.theme-dark .bg-white,
+body.theme-dark nav                            { background: rgba(18, 18, 32, 0.97) !important; }
+body.theme-dark .shadow-lg                     { box-shadow: 0 4px 30px rgba(0, 0, 0, 0.7) !important; }
+body.theme-dark .text-slate-700               { color: #c9d1de !important; }
+body.theme-dark .text-slate-600               { color: #94a3b8 !important; }
+body.theme-dark .text-slate-800               { color: #e2e8f0 !important; }
+body.theme-dark .text-slate-900               { color: #f1f5f9 !important; }
+body.theme-dark .text-slate-500               { color: #64748b !important; }
+body.theme-dark .bg-slate-50,
+body.theme-dark .bg-slate-100                 { background: #1a1a2e !important; }
+body.theme-dark .border-slate-200             { border-color: #2d2d44 !important; }
+body.theme-dark .hover\:bg-primary-50:hover   { background: rgba(14, 165, 233, 0.15) !important; }
+body.theme-dark .hover\:bg-slate-50:hover     { background: #1e1e35 !important; }
+body.theme-dark .bg-gray-50                   { background: #12121f !important; }
+body.theme-dark .bg-gray-100                  { background: #1a1a2e !important; }
+body.theme-dark .border-gray-200              { border-color: #2d2d44 !important; }
+body.theme-dark .text-gray-700               { color: #c9d1de !important; }
+body.theme-dark .text-gray-600               { color: #94a3b8 !important; }
+body.theme-dark .text-gray-800               { color: #e2e8f0 !important; }
+body.theme-dark .text-gray-900               { color: #f1f5f9 !important; }
+body.theme-dark .card,
+body.theme-dark [class*="rounded"] .bg-white  { background: rgba(22, 22, 40, 0.95) !important; }
+
+/* ── Dark star animation ── */
+@keyframes starTwinkle {
+  0%, 100% { opacity: 0.2; transform: scale(0.7); }
+  50%       { opacity: 1;   transform: scale(1.3); }
+}
+.dark-star {
+  position: fixed;
+  border-radius: 50%;
+  background: white;
+  pointer-events: none;
+  z-index: 4;
+  animation: starTwinkle ease-in-out infinite;
+}
+
+/* ── Nebula glow (dark mode decorations) ── */
+@keyframes nebulaPulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50%       { opacity: 1;   transform: scale(1.12); }
+}

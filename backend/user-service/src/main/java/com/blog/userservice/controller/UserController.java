@@ -24,26 +24,33 @@ public class UserController {
     private final UserService userService;
 
     /**
-     * Get all users (Admin only)
+     * Get all users - public endpoint for user discovery
      */
     @GetMapping
     public ResponseEntity<?> getAllUsers(HttpServletRequest httpRequest) {
         try {
-            String role = (String) httpRequest.getAttribute("role");
-
-            // Check if user is admin
-            if (!"ADMIN".equals(role)) {
-                Map<String, String> error = new HashMap<>();
-                error.put("error", "Only administrators can view all users");
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
-            }
-
+            // Public: return all users for discovery
             List<UserResponse> users = userService.getAllUsers();
             return ResponseEntity.ok(users);
         } catch (Exception e) {
             Map<String, String> error = new HashMap<>();
             error.put("error", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
+    }
+
+    /**
+     * Get user profile by ID - public endpoint
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getUserById(@PathVariable UUID id) {
+        try {
+            UserResponse user = userService.getUserById(id);
+            return ResponseEntity.ok(user);
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "User not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
         }
     }
 
@@ -111,6 +118,40 @@ public class UserController {
             Map<String, String> error = new HashMap<>();
             error.put("error", "Failed to change password: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
+    }
+
+    /**
+     * Get own profile (authenticated) - returns full data including hidden email
+     */
+    @GetMapping("/me")
+    public ResponseEntity<?> getMyProfile(HttpServletRequest httpRequest) {
+        try {
+            UUID userId = (UUID) httpRequest.getAttribute("userId");
+            if (userId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            return ResponseEntity.ok(userService.mapToResponseFull(userService.getRawUser(userId)));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Update showEmail setting for authenticated user
+     */
+    @PutMapping("/me/show-email")
+    public ResponseEntity<?> updateShowEmail(
+            @RequestBody Map<String, Boolean> body,
+            HttpServletRequest httpRequest) {
+        try {
+            UUID userId = (UUID) httpRequest.getAttribute("userId");
+            if (userId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            Boolean showEmail = body.getOrDefault("showEmail", false);
+            UserResponse updated = userService.updateShowEmail(userId, showEmail);
+            return ResponseEntity.ok(updated);
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
         }
     }
 }

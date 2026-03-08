@@ -27,35 +27,74 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
 
-        String authHeader = request.getHeader("Authorization");
+        // Check if request comes from API Gateway with user info headers
+        String gatewayUserId = request.getHeader("X-User-Id");
+        String gatewayUserRole = request.getHeader("X-User-Role");
 
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7);
-
+        if (gatewayUserId != null && gatewayUserRole != null) {
+            // Trust API Gateway authentication
             try {
-                if (jwtUtil.validateToken(token)) {
-                    String username = jwtUtil.extractUsername(token);
-                    String role = jwtUtil.extractRole(token);
-                    UUID userId = jwtUtil.extractUserId(token);
+                UUID userId = UUID.fromString(gatewayUserId);
 
-                    if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                        SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + role);
-                        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                                username,
-                                null,
-                                Collections.singletonList(authority));
-
-                        // Store userId in request attribute for easy access
-                        request.setAttribute("userId", userId);
-                        request.setAttribute("username", username);
-                        request.setAttribute("role", role);
-
-                        authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                        SecurityContextHolder.getContext().setAuthentication(authToken);
-                    }
+                // Extract username from Bearer token (gateway forwards it unchanged)
+                String username = "gateway-user";
+                String authHeader = request.getHeader("Authorization");
+                if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                    try {
+                        String token = authHeader.substring(7);
+                        String extracted = jwtUtil.extractUsername(token);
+                        if (extracted != null) username = extracted;
+                    } catch (Exception ignored) {}
                 }
+
+                // Set request attributes for controllers to use
+                request.setAttribute("userId", userId);
+                request.setAttribute("username", username);
+                request.setAttribute("role", gatewayUserRole);
+
+                SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + gatewayUserRole);
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                        username,
+                        null,
+                        Collections.singletonList(authority));
+
+                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authToken);
             } catch (Exception e) {
-                logger.error("JWT validation error: " + e.getMessage());
+                logger.error("Gateway authentication error: " + e.getMessage());
+            }
+        } else {
+            // Fallback to Bearer token validation for direct calls
+            String authHeader = request.getHeader("Authorization");
+
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                String token = authHeader.substring(7);
+
+                try {
+                    if (jwtUtil.validateToken(token)) {
+                        String username = jwtUtil.extractUsername(token);
+                        String role = jwtUtil.extractRole(token);
+                        UUID userId = jwtUtil.extractUserId(token);
+
+                        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                            SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + role);
+                            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                                    username,
+                                    null,
+                                    Collections.singletonList(authority));
+
+                            // Store userId in request attribute for easy access
+                            request.setAttribute("userId", userId);
+                            request.setAttribute("username", username);
+                            request.setAttribute("role", role);
+
+                            authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                            SecurityContextHolder.getContext().setAuthentication(authToken);
+                        }
+                    }
+                } catch (Exception e) {
+                    logger.error("JWT validation error: " + e.getMessage());
+                }
             }
         }
 

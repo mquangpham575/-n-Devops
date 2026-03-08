@@ -41,6 +41,27 @@ spring:
           filters:
             - RewritePath=/api/users/(?<segment>.*), /api/users/$\{segment}
         
+        - id: user-service-follow
+          uri: ${USER_SERVICE_URL:http://user-service:8081}
+          predicates:
+            - Path=/api/follow/**
+          filters:
+            - RewritePath=/api/follow/(?<segment>.*), /api/follow/$\{segment}
+
+        - id: user-service-notifications
+          uri: ${USER_SERVICE_URL:http://user-service:8081}
+          predicates:
+            - Path=/api/notifications/**
+          filters:
+            - RewritePath=/api/notifications/(?<segment>.*), /api/notifications/$\{segment}
+
+        - id: user-service-messages
+          uri: ${USER_SERVICE_URL:http://user-service:8081}
+          predicates:
+            - Path=/api/messages/**
+          filters:
+            - RewritePath=/api/messages/(?<segment>.*), /api/messages/$\{segment}
+        
         # Blog Service Routes
         - id: blog-service-blogs
           uri: ${BLOG_SERVICE_URL:http://blog-service:8082}
@@ -50,11 +71,22 @@ spring:
             - RewritePath=/api/blogs/(?<segment>.*), /api/blogs/$\{segment}
             - RewritePath=/api/blogs, /api/blogs
         
+        # Category Routes (in blog-service)
+        - id: blog-service-categories
+          uri: ${BLOG_SERVICE_URL:http://blog-service:8082}
+          predicates:
+            - Path=/api/categories/**
+          filters:
+            - RewritePath=/api/categories/(?<segment>.*), /api/categories/$\{segment}
+            - RewritePath=/api/categories, /api/categories
+        
         # Comment Service Routes (also in blog-service)
         - id: blog-service-comments
           uri: ${BLOG_SERVICE_URL:http://blog-service:8082}
           predicates:
             - Path=/api/comments/**
+          filters:
+            - RewritePath=/api/comments/(?<segment>.*), /api/comments/$\{segment}
 
         # Static Uploads
         - id: blog-service-uploads
@@ -78,3 +110,7 @@ management:
     web:
       exposure:
         include: health,info,gateway
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:5367566B59703373367639792F423F4528482B4D6251655468576D5A7134743777217A25432A462D4A404E635266556A586E3272357538782F413F4428472B4B}

@@ -20,13 +20,22 @@ public class UserService {
     private final EmailService emailService;
 
     /**
-     * Get all users (Admin only)
+     * Get all users
      */
     public List<UserResponse> getAllUsers() {
         return userRepository.findAll()
                 .stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Get user by ID
+     */
+    public UserResponse getUserById(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return mapToResponse(user);
     }
 
     /**
@@ -81,13 +90,49 @@ public class UserService {
         emailService.sendPasswordChangeNotification(user.getEmail(), user.getUsername());
     }
 
-    private UserResponse mapToResponse(User user) {
+    /**
+     * Get raw User entity (for internal use)
+     */
+    public User getRawUser(UUID userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    /**
+     * Update showEmail preference for the authenticated user
+     */
+    public UserResponse updateShowEmail(UUID userId, boolean showEmail) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setShowEmail(showEmail);
+        User saved = userRepository.save(user);
+        return mapToResponseFull(saved);
+    }
+
+    // Returns full data including email (for own profile / admin)
+    public UserResponse mapToResponseFull(User user) {
         return UserResponse.builder()
                 .id(user.getId())
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .role(user.getRole().name())
                 .enabled(user.getEnabled())
+                .showEmail(user.getShowEmail())
+                .createdAt(user.getCreatedAt())
+                .build();
+    }
+
+    private UserResponse mapToResponse(User user) {
+        // For public view – hide email if user opted out
+        String email = Boolean.TRUE.equals(user.getShowEmail()) ? user.getEmail() : null;
+        return UserResponse.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(email)
+                .role(user.getRole().name())
+                .enabled(user.getEnabled())
+                .showEmail(user.getShowEmail())
+                .createdAt(user.getCreatedAt())
                 .build();
     }
 }

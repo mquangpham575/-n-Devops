@@ -1,0 +1,104 @@
+/* ══════════════════════════════════════════════════════
+   TẾT THEME — Pháo hoa · Chữ đỏ · Nền trắng
+   Font: Dela Gothic One (nét đậm, góc cạnh, lễ hội rực rỡ)
+   ══════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap');
+
+/* ── Background ── */
+body.theme-tet {
+    background-image: url('/images/tet.jpg') !important;
+    background-size: cover !important;
+    background-attachment: fixed !important;
+    background-position: center center !important;
+    background-color: #fff0f0 !important;
+}
+
+/* ── Font ── */
+body.theme-tet,
+body.theme-tet * {
+    font-family: 'Baloo 2', sans-serif !important;
+}
+body.theme-tet h1,
+body.theme-tet h2,
+body.theme-tet h3,
+body.theme-tet h4 {
+    font-weight: 800 !important;
+    letter-spacing: 0.01em;
+}
+
+/* ── Cards / panels — semi-transparent white ── */
+body.theme-tet .bg-white                    { background: rgba(255, 249, 249, 0.93) !important; }
+body.theme-tet .bg-slate-50                 { background: rgba(255, 245, 245, 0.91) !important; }
+body.theme-tet .bg-slate-100               { background: rgba(255, 242, 242, 0.89) !important; }
+body.theme-tet .bg-gray-50                  { background: rgba(255, 248, 248, 0.91) !important; }
+body.theme-tet .bg-gray-100                 { background: rgba(255, 244, 244, 0.89) !important; }
+
+/* ── Navbar ── */
+body.theme-tet nav {
+    background: rgba(255, 245, 245, 0.97) !important;
+    border-bottom: 2px solid #e53935 !important;
+    box-shadow: 0 2px 12px rgba(183, 28, 28, 0.15) !important;
+}
+
+/* ── Red text — all slate/gray text classes → red palette ── */
+body.theme-tet .text-slate-900,
+body.theme-tet .text-gray-900  { color: #7f0000 !important; }
+
+body.theme-tet .text-slate-800,
+body.theme-tet .text-gray-800  { color: #b71c1c !important; }
+
+body.theme-tet .text-slate-700,
+body.theme-tet .text-gray-700  { color: #c62828 !important; }
+
+body.theme-tet .text-slate-600,
+body.theme-tet .text-gray-600  { color: #d32f2f !important; }
+
+body.theme-tet .text-slate-500,
+body.theme-tet .text-gray-500  { color: #e53935 !important; }
+
+body.theme-tet .text-slate-400,
+body.theme-tet .text-gray-400  { color: #ef9a9a !important; }
+
+body.theme-tet .text-slate-300,
+body.theme-tet .text-gray-300  { color: #ffcdd2 !important; }
+
+/* ── Borders ── */
+body.theme-tet .border-slate-200,
+body.theme-tet .border-gray-200 { border-color: #ffcdd2 !important; }
+
+body.theme-tet .border-slate-300,
+body.theme-tet .border-gray-300 { border-color: #ef9a9a !important; }
+
+/* ── Primary color → red gold ── */
+body.theme-tet .text-primary-600  { color: #c62828 !important; }
+body.theme-tet .text-primary-700  { color: #b71c1c !important; }
+body.theme-tet .bg-primary-600    { background: #c62828 !important; }
+body.theme-tet .bg-primary-700    { background: #b71c1c !important; }
+body.theme-tet .border-primary-300{ border-color: #ef9a9a !important; }
+body.theme-tet .ring-primary-500  { --tw-ring-color: #e53935 !important; }
+body.theme-tet .hover\:bg-primary-700:hover { background: #b71c1c !important; }
+body.theme-tet .hover\:text-primary-600:hover { color: #c62828 !important; }
+body.theme-tet .focus\:ring-primary-500:focus { --tw-ring-color: #e53935 !important; }
+
+/* ── Shadows ── */
+body.theme-tet .shadow-sm  { box-shadow: 0 1px 4px rgba(183, 28, 28, 0.12) !important; }
+body.theme-tet .shadow-md  { box-shadow: 0 4px 12px rgba(183, 28, 28, 0.18) !important; }
+body.theme-tet .shadow-lg  { box-shadow: 0 8px 24px rgba(183, 28, 28, 0.2) !important; }
+body.theme-tet .shadow-xl  { box-shadow: 0 12px 36px rgba(183, 28, 28, 0.22) !important; }
+
+/* ── Hover backgrounds ── */
+body.theme-tet .hover\:bg-slate-50:hover { background: rgba(255, 240, 240, 0.9) !important; }
+
+/* ── Inputs ── */
+body.theme-tet input[type="text"],
+body.theme-tet input[type="email"],
+body.theme-tet input[type="password"],
+body.theme-tet textarea {
+    border-color: #ffcdd2 !important;
+    color: #b71c1c !important;
+}
+body.theme-tet input::placeholder,
+body.theme-tet textarea::placeholder {
+    color: #ef9a9a !important;
+}
