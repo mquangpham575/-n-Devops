@@ -159,13 +159,13 @@ deploy-to-server:
     - chmod 700 ~/.ssh
     - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
   script:
-    # 1. Create the deployment directory on the server if it doesn't exist
+    # Create the deployment directory on the server if it doesn't exist
     - ssh $SERVER_USER@$SERVER_IP "mkdir -p ~/app"
-    # 2. Render docker-compose.yml with CI variables and copy to server
+    # Render docker-compose.yml with CI variables and copy to server
     - |
       export CI_REGISTRY_IMAGE="$CI_REGISTRY_IMAGE"
       envsubst < docker-compose.yml | ssh $SERVER_USER@$SERVER_IP "cat > ~/app/docker-compose.yml"
-    # 3. SSH into the server and run docker-compose up
+    # SSH into the server and run docker-compose up
     - |
       ssh $SERVER_USER@$SERVER_IP "
         cd ~/app &&
