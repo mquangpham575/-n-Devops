@@ -149,8 +149,8 @@ deploy-to-server:
   stage: deploy
   image: alpine:latest
   before_script:
-    # Install ssh-pass and openssh-client to connect to your server
-    - apk add --no-cache openssh-client
+    # Install ssh-pass, openssh-client and envsubst for variable substitution
+    - apk add --no-cache openssh-client gettext
     # Start SSH agent and add your private key
     - eval $(ssh-agent -s)
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
