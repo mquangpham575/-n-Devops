@@ -45,6 +45,9 @@ cache:
   stage: docker-build
   services:
     - docker:24.0.5-dind
+  variables:
+    # Disable TLS for the docker-in-docker service to prevent TCP connection issues
+    DOCKER_TLS_CERTDIR: ""
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
