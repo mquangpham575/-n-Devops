@@ -150,11 +150,10 @@ deploy-to-server:
     # Start SSH agent and add your private key
     - eval $(ssh-agent -s)
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
-    # Add server to known_hosts to prevent strict host checking errors
+    # Disable strict host checking to prevent SSH interactive prompts
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
-    - ssh-keyscan $SERVER_IP >> ~/.ssh/known_hosts
-    - chmod 644 ~/.ssh/known_hosts
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
   script:
     # SSH into the server and run docker-compose up
     - |
