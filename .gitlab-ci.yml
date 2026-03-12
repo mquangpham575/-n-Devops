@@ -143,6 +143,9 @@ docker-frontend:
   variables:
     SERVICE_DIR: "frontend"
     IMAGE_NAME: "frontend"
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - if [ -d "$SERVICE_DIR/dist" ]; then cp -r $SERVICE_DIR/dist/ $SERVICE_DIR/ || true; fi
   dependencies:
     - build-frontend
 
