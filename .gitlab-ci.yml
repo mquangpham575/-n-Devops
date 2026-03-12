@@ -24,8 +24,7 @@ cache:
   stage: build
   script:
     - cd $SERVICE_DIR
-    - mvn clean package -DskipTests -o
-  cache: []
+    - mvn clean package -DskipTests
   artifacts:
     # Retain the compiled .jar files for the docker build stage
     paths:
@@ -36,10 +35,9 @@ cache:
 .backend_test_template: &backend_test_def
   image: maven:3.9.6-eclipse-temurin-17
   stage: test
-  cache: []
   script:
     - cd $SERVICE_DIR
-    - mvn test -o
+    - mvn test
 
 # Docker build and push configuration
 .docker_build_template: &docker_build_def
