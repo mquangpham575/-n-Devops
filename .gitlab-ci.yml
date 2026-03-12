@@ -203,9 +203,9 @@ deploy-to-backup-server:
       ssh -p 19116 quang@0.tcp.ap.ngrok.io "
         cd ~/app &&
         echo '$CI_REGISTRY_PASSWORD' | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin &&
-        sudo docker-compose down &&
-        sudo docker-compose pull &&
-        sudo docker-compose up -d
+        docker-compose down &&
+        docker-compose pull &&
+        docker-compose up -d
       "
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
