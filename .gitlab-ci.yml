@@ -24,7 +24,8 @@ cache:
   stage: build
   script:
     - cd $SERVICE_DIR
-    - mvn clean package -DskipTests
+    - mvn clean package -DskipTests -o
+  cache: []
   artifacts:
     # Retain the compiled .jar files for the docker build stage
     paths:
@@ -35,9 +36,10 @@ cache:
 .backend_test_template: &backend_test_def
   image: maven:3.9.6-eclipse-temurin-17
   stage: test
+  cache: []
   script:
     - cd $SERVICE_DIR
-    - mvn test
+    - mvn test -o
 
 # Docker build and push configuration
 .docker_build_template: &docker_build_def
@@ -77,6 +79,10 @@ build-file-service:
 build-frontend:
   image: node:20-alpine
   stage: build
+  cache:
+    key: "$CI_COMMIT_REF_SLUG"
+    paths:
+      - frontend/node_modules/
   script:
     - cd frontend
     - npm ci
@@ -141,7 +147,6 @@ docker-frontend:
     SERVICE_DIR: "frontend"
     IMAGE_NAME: "frontend"
   before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - if [ -d "$SERVICE_DIR/dist" ]; then cp -r $SERVICE_DIR/dist/ $SERVICE_DIR/ || true; fi
   dependencies:
     - build-frontend
