@@ -5,8 +5,8 @@ stages:
   - deploy
 
 variables:
-  # Speed up builds by caching maven repo locally
-  MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
+  # Speed up builds by caching maven repo locally across microservices
+  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
   # Use overlay2 driver for faster docker image building
   DOCKER_DRIVER: overlay2
 
@@ -173,6 +173,16 @@ deploy-to-server:
     # SSH into the server and run docker-compose up
     - |
       ssh $SERVER_USER@$SERVER_IP "
+        export USER_DB_PORT=5434
+        export BLOG_DB_PORT=5433
+        export FILE_DB_PORT=5435
+        export USER_SERVICE_PORT=9001
+        export BLOG_SERVICE_PORT=8083
+        export FILE_SERVICE_PORT=8085
+        export SEAWEEDFS_MASTER_PORT=9333
+        export SEAWEEDFS_VOLUME_PORT=8084
+        export SEAWEEDFS_FILER_PORT=8889
+        export FRONTEND_PORT=5173
         cd ~/app &&
         echo '$CI_REGISTRY_PASSWORD' | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin &&
         sudo docker-compose down &&
@@ -201,6 +211,16 @@ deploy-to-backup-server:
       envsubst < docker-compose.yml | ssh -p 19116 quang@0.tcp.ap.ngrok.io "cat > ~/app/docker-compose.yml"
     - |
       ssh -p 19116 quang@0.tcp.ap.ngrok.io "
+        export USER_DB_PORT=5444
+        export BLOG_DB_PORT=5443
+        export FILE_DB_PORT=5445
+        export USER_SERVICE_PORT=9002
+        export BLOG_SERVICE_PORT=8093
+        export FILE_SERVICE_PORT=8095
+        export SEAWEEDFS_MASTER_PORT=9334
+        export SEAWEEDFS_VOLUME_PORT=8094
+        export SEAWEEDFS_FILER_PORT=8890
+        export FRONTEND_PORT=5174
         cd ~/app &&
         echo '$CI_REGISTRY_PASSWORD' | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin &&
         docker-compose down &&
