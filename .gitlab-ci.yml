@@ -5,30 +5,29 @@ stages:
   - deploy
 
 variables:
-  # Use overlay2 driver for faster docker image building
   DOCKER_DRIVER: overlay2
+  # FIX 1: Tell Maven to use a directory INSIDE the project folder
+  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
 
-# Cache dependencies to reduce build times between pipeline runs
+# FIX 2: Update the global cache to point to the new internal path
 cache:
   key: "$CI_COMMIT_REF_SLUG"
   paths:
-    - /root/.m2/repository/
+    - .m2/repository/
 
 # --- Templates (DRY Principle) ---
-# Java microservice build configuration
 .backend_build_template: &backend_build_def
   image: maven:3.9.6-eclipse-temurin-17
   stage: build
   script:
     - cd $SERVICE_DIR
+    # Maven will now automatically use the path defined in MAVEN_OPTS
     - mvn package -DskipTests
   artifacts:
-    # Retain the compiled .jar files for the docker build stage
     paths:
       - $SERVICE_DIR/target/*.jar
     expire_in: 1 week
 
-# Java microservice test configuration
 .backend_test_template: &backend_test_def
   image: maven:3.9.6-eclipse-temurin-17
   stage: test
@@ -36,7 +35,6 @@ cache:
     - cd $SERVICE_DIR
     - mvn test
 
-# Docker build and push configuration
 .docker_build_template: &docker_build_def
   image: docker:24.0.5
   stage: docker-build
@@ -54,7 +52,6 @@ cache:
     - docker build -t $CI_REGISTRY_IMAGE/$IMAGE_NAME:$CI_COMMIT_SHORT_SHA -f $SERVICE_DIR/Dockerfile $SERVICE_DIR
     - docker push $CI_REGISTRY_IMAGE/$IMAGE_NAME:$CI_COMMIT_SHORT_SHA
   rules:
-    # Only execute docker deployments from the main branch
     - if: $CI_COMMIT_BRANCH == "main"
 
 # --- Build Stage ---
@@ -76,8 +73,9 @@ build-file-service:
 build-frontend:
   image: node:20-alpine
   stage: build
+  # Frontend uses its own cache to avoid overwriting/conflicting with Java cache
   cache:
-    key: "$CI_COMMIT_REF_SLUG"
+    key: "node-$CI_COMMIT_REF_SLUG"
     paths:
       - frontend/node_modules/
   script:
@@ -85,7 +83,6 @@ build-frontend:
     - npm ci
     - npm run build
   artifacts:
-    # Retain the compiled frontend assets for the docker build stage
     paths:
       - frontend/dist/
     expire_in: 1 week
@@ -142,23 +139,17 @@ deploy-to-server:
   stage: deploy
   image: alpine:latest
   before_script:
-    # Install ssh-pass, openssh-client and envsubst for variable substitution
     - apk add --no-cache openssh-client gettext
-    # Start SSH agent and add your private key
     - eval $(ssh-agent -s)
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
-    # Disable strict host checking to prevent SSH interactive prompts
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
     - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
   script:
-    # Create the deployment directory on the server if it doesn't exist
     - ssh $SERVER_USER@$SERVER_IP "mkdir -p ~/app"
-    # Render docker-compose.yml with CI variables and copy to server
     - |
       export CI_REGISTRY_IMAGE="$CI_REGISTRY_IMAGE"
       envsubst < docker-compose.yml | ssh $SERVER_USER@$SERVER_IP "cat > ~/app/docker-compose.yml"
-    # SSH into the server and run docker-compose up
     - |
       ssh $SERVER_USER@$SERVER_IP "
         cd ~/app &&
@@ -168,5 +159,4 @@ deploy-to-server:
         sudo docker-compose up -d
       "
   rules:
-    # Only deploy when code is pushed/merged to the main branch
     - if: $CI_COMMIT_BRANCH == "main"
