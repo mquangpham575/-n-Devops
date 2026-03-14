@@ -78,8 +78,9 @@ cache:
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
-    - docker build -t $CI_REGISTRY_IMAGE/$IMAGE_NAME:$CI_COMMIT_SHORT_SHA -f $SERVICE_DIR/Dockerfile $SERVICE_DIR
+    - docker build -t $CI_REGISTRY_IMAGE/$IMAGE_NAME:$CI_COMMIT_SHORT_SHA -t $CI_REGISTRY_IMAGE/$IMAGE_NAME:latest -f $SERVICE_DIR/Dockerfile $SERVICE_DIR
     - docker push $CI_REGISTRY_IMAGE/$IMAGE_NAME:$CI_COMMIT_SHORT_SHA
+    - docker push $CI_REGISTRY_IMAGE/$IMAGE_NAME:latest
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
 
@@ -208,7 +209,12 @@ docker-frontend:
   script:
     - ssh $SERVER_USER@$SERVER_IP "mkdir -p ~/app"
     - |
-      # Substitute only the relevant tag for this service
+      # Export variables for envsubst to use
+      export CI_REGISTRY_IMAGE="$CI_REGISTRY_IMAGE"
+      export USER_TAG="${USER_TAG:-latest}"
+      export BLOG_TAG="${BLOG_TAG:-latest}"
+      export FILE_TAG="${FILE_TAG:-latest}"
+      export FRONTEND_TAG="${FRONTEND_TAG:-latest}"
       envsubst < docker-compose.yml | ssh $SERVER_USER@$SERVER_IP "cat > ~/app/docker-compose.yml"
     - |
       ssh $SERVER_USER@$SERVER_IP "
