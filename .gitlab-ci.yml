@@ -4,6 +4,27 @@ stages:
   - docker-build
   - deploy
 
+# --- Change Detection Templates ---
+.user-service-changes:
+  rules:
+    - changes:
+        - backend/user-service/**/*
+
+.blog-service-changes:
+  rules:
+    - changes:
+        - backend/blog-service/**/*
+
+.file-service-changes:
+  rules:
+    - changes:
+        - backend/file-service/**/*
+
+.frontend-changes:
+  rules:
+    - changes:
+        - frontend/**/*
+
 variables:
   DOCKER_DRIVER: overlay2
   # FIX 1: Tell Maven to use a directory INSIDE the project folder
@@ -57,22 +78,26 @@ cache:
 # --- Build Stage ---
 build-user-service:
   <<: *backend_build_def
+  extends: .user-service-changes
   variables:
     SERVICE_DIR: "backend/user-service"
 
 build-blog-service:
   <<: *backend_build_def
+  extends: .blog-service-changes
   variables:
     SERVICE_DIR: "backend/blog-service"
 
 build-file-service:
   <<: *backend_build_def
+  extends: .file-service-changes
   variables:
     SERVICE_DIR: "backend/file-service"
 
 build-frontend:
   image: node:20-alpine
   stage: build
+  extends: .frontend-changes
   # Frontend uses its own cache to avoid overwriting/conflicting with Java cache
   cache:
     key: "node-$CI_COMMIT_REF_SLUG"
@@ -90,6 +115,7 @@ build-frontend:
 # --- Test Stage ---
 test-user-service:
   <<: *backend_test_def
+  extends: .user-service-changes
   variables:
     SERVICE_DIR: "backend/user-service"
   dependencies:
@@ -97,6 +123,7 @@ test-user-service:
 
 test-blog-service:
   <<: *backend_test_def
+  extends: .blog-service-changes
   variables:
     SERVICE_DIR: "backend/blog-service"
   dependencies:
@@ -104,6 +131,7 @@ test-blog-service:
 
 test-file-service:
   <<: *backend_test_def
+  extends: .file-service-changes
   variables:
     SERVICE_DIR: "backend/file-service"
   dependencies:
@@ -115,24 +143,40 @@ docker-user-service:
   variables:
     SERVICE_DIR: "backend/user-service"
     IMAGE_NAME: "user-service"
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      changes:
+        - backend/user-service/**/*
 
 docker-blog-service:
   <<: *docker_build_def
   variables:
     SERVICE_DIR: "backend/blog-service"
     IMAGE_NAME: "blog-service"
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      changes:
+        - backend/blog-service/**/*
 
 docker-file-service:
   <<: *docker_build_def
   variables:
     SERVICE_DIR: "backend/file-service"
     IMAGE_NAME: "file-service"
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      changes:
+        - backend/file-service/**/*
 
 docker-frontend:
   <<: *docker_build_def
   variables:
     SERVICE_DIR: "frontend"
     IMAGE_NAME: "frontend"
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      changes:
+        - frontend/**/*
 
 # --- Deploy Stage ---
 deploy-to-server:
@@ -154,9 +198,8 @@ deploy-to-server:
       ssh $SERVER_USER@$SERVER_IP "
         cd ~/app &&
         echo '$CI_REGISTRY_PASSWORD' | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin &&
-        sudo docker-compose down &&
         sudo docker-compose pull &&
-        sudo docker-compose up -d
+        sudo docker-compose up -d --remove-orphans
       "
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
