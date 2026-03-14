@@ -9,21 +9,29 @@ stages:
   rules:
     - changes:
         - backend/user-service/**/*
+        - .gitlab-ci.yml
+        - docker-compose.yml
 
 .blog-service-changes:
   rules:
     - changes:
         - backend/blog-service/**/*
+        - .gitlab-ci.yml
+        - docker-compose.yml
 
 .file-service-changes:
   rules:
     - changes:
         - backend/file-service/**/*
+        - .gitlab-ci.yml
+        - docker-compose.yml
 
 .frontend-changes:
   rules:
     - changes:
         - frontend/**/*
+        - .gitlab-ci.yml
+        - docker-compose.yml
 
 variables:
   DOCKER_DRIVER: overlay2
@@ -147,6 +155,8 @@ docker-user-service:
     - if: $CI_COMMIT_BRANCH == "main"
       changes:
         - backend/user-service/**/*
+        - .gitlab-ci.yml
+        - docker-compose.yml
 
 docker-blog-service:
   <<: *docker_build_def
@@ -157,6 +167,8 @@ docker-blog-service:
     - if: $CI_COMMIT_BRANCH == "main"
       changes:
         - backend/blog-service/**/*
+        - .gitlab-ci.yml
+        - docker-compose.yml
 
 docker-file-service:
   <<: *docker_build_def
@@ -167,6 +179,8 @@ docker-file-service:
     - if: $CI_COMMIT_BRANCH == "main"
       changes:
         - backend/file-service/**/*
+        - .gitlab-ci.yml
+        - docker-compose.yml
 
 docker-frontend:
   <<: *docker_build_def
@@ -177,6 +191,8 @@ docker-frontend:
     - if: $CI_COMMIT_BRANCH == "main"
       changes:
         - frontend/**/*
+        - .gitlab-ci.yml
+        - docker-compose.yml
 
 # --- Deploy Stage ---
 deploy-to-server:
