@@ -21,7 +21,7 @@ public class User {
     // Constructor for CI testing
     public User(String username) {
         this.username = username;
-        System.out.println("Hello from User Service CI test");
+        System.out.println("Hello from User Service CI test2");
     }
 
     @Id
