@@ -199,6 +199,7 @@ docker-frontend:
 .deploy_template:
   stage: deploy
   image: alpine:latest
+  resource_group: production-deploy
   before_script:
     - apk add --no-cache openssh-client gettext
     - eval $(ssh-agent -s)
@@ -219,9 +220,9 @@ docker-frontend:
     - |
       ssh $SERVER_USER@$SERVER_IP "
         cd ~/app &&
-        echo '$CI_REGISTRY_PASSWORD' | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin &&
+        echo '$CI_REGISTRY_PASSWORD' | sudo docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin &&
         sudo docker compose pull $SERVICE_NAME &&
-        sudo docker compose up -d $SERVICE_NAME --remove-orphans
+        sudo docker compose up -d --no-deps $SERVICE_NAME
       "
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
